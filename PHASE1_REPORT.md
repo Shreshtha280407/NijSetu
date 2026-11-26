@@ -1,12 +1,20 @@
 # NijSetu Phase 1 — Repair and Revalidation Report
 
+> **Historical Phase 1 record. Reviewed 27 November 2026.** The scope,
+> commits, working-tree state and measurements below describe that repair
+> session. The repository now includes Phase 2 sanitization, organizer
+> integration and a synthetic React dashboard. Use the [root README](README.md)
+> for current setup and verification, and the [Gate 0.5 report](GATE05_FINAL_REPORT.md)
+> for the latest recorded engine evaluation. Gate 0.5 changed fuzzy linkage
+> and detection beyond the Phase 1 behavior described here.
+
 Scope: Phase 1 only — ingest, role-sensitive detection, cross-script name
 matching, and patient identity linking into a private analysis plan plus a
 safe aggregate report. **No sanitized research release is produced or
 claimed in this phase.** Privacy transformation, clinical validation, secure
 export (Phase 2) and the frontend/benchmarks/packaging (Phase 3) are out of
 scope; the existing frontend design (Batch intake / Link review / Release
-checks) was not touched, and no frontend code exists in this repository.
+checks) was not touched, and no frontend code existed at that stage.
 
 ## 1. Starting state and current base
 
@@ -547,10 +555,13 @@ and is byte-for-byte repeatable; the wheel now correctly bundles the
 gazetteer license notice and installs/runs fully offline outside the source
 checkout.
 
-**Commands to rerun**:
+**Commands to rerun on the current checkout** (results may differ from this
+historical snapshot; activate a Python 3.10+ environment first):
 ```
 pip install -e ".[dev]"
 python -m pytest tests/ -q
+# Install Ruff separately if needed; it is not included in .[dev].
+python -m pip install ruff
 python -m ruff check src/ scripts/ tests/
 python scripts/eval_gate1.py          # Measured section above, exact source-system contract baked in
 python -m nijsetu gate phase1 --output /tmp/nijsetu_gate

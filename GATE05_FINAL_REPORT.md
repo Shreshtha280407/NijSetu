@@ -2,9 +2,17 @@
 
 **Privacy, identity and evaluator hardening**
 
-Branch `phase/gate05-privacy-linkage-hardening`, off `main` at `b0358f3`.
-Nothing is committed and nothing is pushed; every change is in the working
-tree for review.
+> **Gate 0.5 evaluation snapshot. Reviewed 27 November 2026.** This is the
+> latest recorded engine evaluation, not a new practice-corpus run on each
+> documentation review. Gate 0.5 and the synthetic frontend have since been
+> committed and merged into `main` (PRs #1 and #2). Current setup and fresh
+> verification are in the [root README](README.md), with dashboard scope in
+> the [frontend guide](frontend/README.md). The README and dashboard are
+> complete; engine/API integration and the two-page Project Brief PDF remain
+> outstanding. Session-state statements below are historical.
+
+Original session branch: `phase/gate05-privacy-linkage-hardening`, off `main`
+at `b0358f3`. Work was left in the working tree for review at that point.
 
 Experiment ledger with hypotheses, rejected approaches and before/after
 measurements for each change: [`docs/gate05-experiments.md`](docs/gate05-experiments.md).
@@ -31,21 +39,21 @@ organizer's own `check_dev.py`. "Gate 0" is the state this phase started from.
 
 | | Gate 0 | **Gate 0.5** | |
 |---|---|---|---|
-| **Entities leaked** | 243 / 3240 — 7.5% | **0 / 3230 — 0.0%** | ✅ |
-| MRN | 12.9% | **0.0%** | |
-| PATIENT_NAME | 6.2% | **0.0%** | |
+| **Entities leaked** | 243 / 3230 — 7.5% | **0 / 3230 — 0.0%** | ✅ |
+| MRN | 11.3% | **0.0%** | |
+| PATIENT_NAME | 4.7% | **0.0%** | |
 | PHONE | 12.7% | **0.0%** | |
-| VILLAGE / LOCALITY / HOUSE / LANDMARK | up to 24.7% | **0.0%** | |
-| Aadhaar / ABHA / PAN / PIN / DOB / email | 0–12% | **0.0%** | |
-| by language — latin / देवनागरी / hinglish | 4.6% / 16.1% / 20.7% | **0.0% / 0.0% / 0.0%** | |
-| by channel — content / filename / base64 / metadata / key / header | 4.8% / 41.7% / 10.0% / 15.0% / 50.0% / 50.0% | **0.0% × 6** | |
+| VILLAGE / LOCALITY / HOUSE / LANDMARK | up to 20.7% | **0.0%** | |
+| Aadhaar / ABHA / PAN / PIN / DOB / email | 0–0.7% | **0.0%** | |
+| by language — latin / देवनागरी / hinglish | 6.7% / 16.1% / 18.0% | **0.0% / 0.0% / 0.0%** | |
+| by channel — content / filename / base64 / metadata / key / header | 6.2% / 64.6% / 10.0% / 17.5% / 50.0% / 50.0% | **0.0% × 6** | |
 | **Canaries leaked** (−3 each) | **3 / 4** → −9 pts | **0 / 4** → 0 pts | ✅ |
 | **Raw unprocessed exports** (−5 each) | 0 | **0** | ✅ |
 | **Clinical values preserved** | 95.8% (3518/3671) | **97.3% (4223/4339)** | ✅ |
-| **Identity — pairwise precision** | 1.00 | **1.00** | ✅ |
+| **Identity — pairwise precision** | 0.990 | **1.00** | ✅ |
 | **Identity — pairwise recall** | 0.213 | **0.74** | ✅ |
 | **Identity — F0.5** | 0.57 | **0.93** | ✅ |
-| **Pseudonyms wrongly merging two people** | 0 | **0** | ✅ |
+| **Pseudonyms wrongly merging two people** | 1 | **0** | ✅ |
 | Records linked | — | 769 / 788 published claims | |
 | Files quarantined | 30 / 200 | **11 / 200** | ✅ |
 | Output contract | OK | **OK** | ✅ |
@@ -55,7 +63,9 @@ organizer's own `check_dev.py`. "Gate 0" is the state this phase started from.
 Against the brief's stated targets: precision ≥0.98 → **1.00**; F0.5 ≥0.75
 (ambitious) → **0.93**; zero false merges on the hard-negative suite → **0**.
 
-Two numbers in the Gate 0 column are corrections to `GATE0_FINAL_REPORT.md`,
+The Gate 0 column uses the ledger's **E0 baseline**, rather than intermediate
+experiment results that had previously been mixed into this table.
+Two numbers are corrections to `GATE0_FINAL_REPORT.md`,
 which understated both: it reported 2 of 4 canaries (actually **3**) and 0
 quarantined files (actually **30** — the report had conflated the raw-copy
 penalty count with the quarantine count). The corrected baseline is used
@@ -175,6 +185,11 @@ district eliminates all 4 measured uniquely-identifiable released rows for 1.1
 points of clinical utility; the full `strict` preset reaches the same privacy
 result for 11.4 points. Shipped policy keeps `geography_level: district`, with
 the price recorded so the choice can be overturned by one knob.
+
+The ledger's policy table uses `scripts/policy_tradeoff.py`'s batch-wide
+substring utility scorer (98.4% for balanced), while section B uses the
+organizer's per-file scorer (97.3%). These percentages have different scoring
+scopes and are not interchangeable.
 
 Three inconvenient findings are reported rather than dropped: date-shift width
 moves nothing in this table (a limitation of the metric, since dates are not in
@@ -402,8 +417,10 @@ Total **281 → 457**, with the 3 pre-existing failures fixed.
    per candidate merge. It dominates the 2.57 s → 5.3 s runtime change.
    Irrelevant at this corpus size (0.6% of budget); it would need indexing at
    10× the records.
-8. **Not done, and still owed by you:** the two-page Project Brief PDF, the
-   README (left untouched at your instruction), and any frontend/demo — all
-   explicitly out of scope for this phase.
-9. **Nothing is committed.** The branch `phase/gate05-privacy-linkage-hardening`
-   holds the work in the working tree, for you to review and commit.
+8. **Submission brief remains outstanding.** The two-page Project Brief PDF
+   is absent. The README and synthetic frontend, which were outside this
+   phase's scope, have since been completed. Connecting the dashboard to the
+   Python engine remains future work.
+9. **Repository status has advanced.** Gate 0.5 and the frontend are committed
+   and merged into `main`; the original session's uncommitted-work statements
+   above are historical.

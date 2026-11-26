@@ -275,7 +275,7 @@ The adapter uses the balanced preset and a fixed organizer release ID. It verifi
 
 ## Verification and evidence
 
-**Fresh local verification, 27 November 2026:** all **457 Python tests passed**; the frontend production build passed. The existing browser suite passed **8 of 9 tests**; its multi-width navigation test timed out clicking an offscreen sidebar link. The README capture separately checked the review gate, excluded record, labeled JSON download and policy invalidation, with **zero JavaScript page errors and zero external app requests**. [Verification and media notes](docs/assets/readme/README.md).
+**Fresh local verification, 27 November 2026:** all **457 Python tests passed**, all **9 browser tests passed**, and the frontend production build passed. The browser rerun includes populated layouts at six widths; the timeout recorded during the earlier README capture did not recur. That capture separately checked the review gate, excluded record, labeled JSON download and policy invalidation, with **zero JavaScript page errors and zero external app requests**. [Verification and media notes](docs/assets/readme/README.md).
 
 The latest engine evaluation is recorded in the **[Gate 0.5 report](GATE05_FINAL_REPORT.md)**. Its measurements are synthetic-corpus evidence, not a clinical-deployment guarantee:
 
@@ -288,7 +288,7 @@ The latest engine evaluation is recorded in the **[Gate 0.5 report](GATE05_FINAL
 | Files exported / quarantined | **189 / 11** | 200 practice inputs; exclusions remain visible. |
 | Independent synthetic corpus | **0 / 176 leaks; 35 / 35 clinical values retained** | 16 generated files with new surface forms; authored within this project. |
 
-The [experiment ledger](docs/gate05-experiments.md) records rejected approaches, regressions and privacy/utility tradeoffs. Historical Phase 1, Phase 2 and Gate 0 reports describe earlier states; Gate 0.5 corrects two Gate 0 accounting figures.
+The [experiment ledger](docs/gate05-experiments.md) records rejected approaches, regressions and privacy/utility tradeoffs. Historical Phase 1, Phase 2 and Gate 0 reports describe earlier states; Gate 0.5 corrects two Gate 0 accounting figures. Their snapshot notices distinguish historical test counts, scope and working-tree statements from the current implementation. Practice-corpus scores above are recorded Gate 0.5 results, not a fresh practice-corpus evaluation during this documentation review.
 
 <details>
 <summary><b>Reproduce the checks and synthetic-corpus evaluation</b></summary>
@@ -338,6 +338,8 @@ The Gate 0.5 evaluation still found **four released rows uniquely identifiable a
 | Offline ingest, multilingual detection, corroborated linkage, privacy policies, checked exports and organizer integration. | Broaden independently authored adversarial evaluation and investigate remaining quasi-identifier uniqueness. |
 | Synthetic dashboard with explicit review and download gating. | Connect a loopback API to the engine, with engine-produced results and server-held keys. |
 | Tests for difficult identity cases, encoded content and record-specific claims. | Improve detection coverage and reduce false holds without weakening merge safeguards. |
+
+The two-page Project Brief PDF referenced by the organizer reports is still absent. The unsupported PDF fixtures are test inputs, not that submission document.
 
 ## Find your way around
 

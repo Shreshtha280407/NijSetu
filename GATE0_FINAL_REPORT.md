@@ -1,6 +1,17 @@
 # NijSetu — Gate 0 Final Report: Secret Wards Organizer Integration
 
-Branch: `phase/gate0-organizer-integration`. Not merged, not pushed, not committed — left for the user to review and commit manually, per instruction.
+> **Historical Gate 0 record. Reviewed 27 November 2026.** Gate 0 has since
+> been committed and incorporated into `main`; the working-tree statements
+> and command transcripts below describe the original session. Use the
+> [root README](README.md) for current setup and the [Gate 0.5 report](GATE05_FINAL_REPORT.md)
+> for later fixes and evaluation. Its remeasured Gate 0 baseline corrects
+> **canaries leaked to 3/4** and **files quarantined to 30/200**. Gate 0.5
+> also replaces whole-file pseudonym searching with exact-record verification
+> and adds bounded Base64 handling. The README and synthetic dashboard now
+> exist; the two-page Project Brief PDF is still absent.
+
+Original session branch: `phase/gate0-organizer-integration`. Work was left
+uncommitted for review at that session's completion.
 
 ## A. Starting state
 
@@ -208,6 +219,13 @@ The verdict is CONDITIONAL rather than PASS because three items are honestly unr
 ---
 
 ## Reproduction commands
+
+These are historical commands and environment assumptions. For current setup,
+use the [README worked example](README.md#run-the-python-engine), a fresh
+environment/output directory, and `python -m pip install '.[dev]'` for tests.
+Ruff is installed separately. Organizer checkers and practice data require
+the separate sibling `Secret-Wards-ToolKit` checkout. The historical cleanup
+command below removes `.venv`; it is not needed for a documentation check.
 
 ```bash
 # Fresh install (from the repo root)

@@ -16,14 +16,15 @@ The README uses `<picture>` static alternatives for browsers that honor `prefers
 
 ## Reproduce the assets
 
-Requirements: the frontend's installed npm dependencies, Google Chrome, Node.js, and FFmpeg available on `PATH`. All design fonts come from the existing local frontend assets; their notices remain in [`frontend/public/fonts`](../../../frontend/public/fonts/).
+Requirements: the frontend's installed npm dependencies, Google Chrome, Node.js 22.12+, FFmpeg available on `PATH`, and Playwright's video helper (`npx playwright install ffmpeg` from `frontend/`). The system FFmpeg and Playwright helper are separate requirements. All design fonts come from the existing local frontend assets; their notices remain in [`frontend/public/fonts`](../../../frontend/public/fonts/).
 
 From the repository root, start the app:
 
 ```bash
 cd frontend
 npm ci
-npm run dev -- --port 5173
+npx playwright install ffmpeg
+npm run dev -- --port 5173 --strictPort
 ```
 
 In a second terminal, from the repository root:
@@ -49,18 +50,33 @@ These checks exercise the synthetic UI; they do not establish privacy or clinica
 
 ## Fresh verification
 
+The latest documentation review reran Python and browser tests on **27
+November 2026**, using CPython **3.14.8**, Node.js **26.12.0**, and Google
+Chrome. Existing captured media and `capture-manifest.json` retain their
+original timestamps; no new recording was made for this review.
+
 | Check | Result on 27 November 2026 |
 |---|---|
-| `.venv/bin/python -m pytest -q` | **457 passed**, 34.63 seconds. |
+| `.venv/bin/python -m pytest -q` | **457 passed**, 34.06 seconds on the documentation-review rerun. |
 | `cd frontend && npm run build` | TypeScript and Vite production build passed. |
-| `cd frontend && npm test` | **8 passed, 1 failed**. The existing populated multi-width test timed out after 120 seconds while clicking an offscreen sidebar link at `frontend/tests/frontend.spec.ts:231`. |
-| Real README capture | Completed; all capture assertions passed, zero page errors, zero external app requests. |
+| `cd frontend && npm test` | **9 passed**, 49.1 seconds on the documentation-review rerun, including the populated multi-width test. |
+| Original real README capture | Completed; all capture assertions passed, zero page errors, zero external app requests. |
 | Documented CLI worked case | `analyze`: `CLEAN`; `sanitize`: `RELEASED`; `validate`: passed. Each exited 0 with the documented explicit issuer mappings. |
 | Organizer example | Generated the 16-file synthetic corpus, ran `main.py`, and scored its output; all commands exited 0. |
 | Synthetic corpus rescoring | 16/16 exported, 0/176 identifying entities leaked, 35/35 expected clinical values retained. |
+| Repository documentation links | All 84 local file/anchor references checked across nine Markdown documents; none broken. |
+| Gazetteer regeneration | Identical bundled JSON data; generated provenance matches the corrected notice. |
 
-The failed browser test is reported rather than represented as passing. Application and existing test source were not changed for this README. Its failure does not prevent the recorded desktop flow; broad responsive-suite success is not claimed.
+During the earlier README capture, the browser suite returned **8 passed,
+1 failed**: the multi-width test timed out clicking an offscreen sidebar
+link at `frontend/tests/frontend.spec.ts:231`. The documentation-review rerun
+passed all nine tests without changing the application or browser-test source.
+This records a successful rerun, not a fix or a guarantee against recurrence.
 
-The first Python test attempt inside the restricted sandbox returned 454 passes and three packaging-related failures because isolated builds could not fetch setuptools. The complete rerun with network access passed all 457 tests. This distinction concerns dependency setup; it does not imply a network dependency during engine processing.
+The restricted-sandbox Python run returned 454 passes and three
+packaging-related failures because isolated builds could not fetch setuptools.
+The complete rerun with network access passed all 457 tests. The browser suite
+also needed permission to start its loopback Vite server and Chrome. These
+are setup/environment requirements; engine processing remains offline.
 
 Practice-corpus metrics in the root README are attributed to the existing [Gate 0.5 report](../../../GATE05_FINAL_REPORT.md). They were not freshly remeasured against the organizer's practice dataset during this documentation task. The synthetic-corpus rescoring above was run independently of the UI capture, through the real Python organizer entrypoint.

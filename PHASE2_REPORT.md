@@ -1,5 +1,16 @@
 # NijSetu Phase 2 — Implementation and Verification Report
 
+> **Historical Phase 2 record. Reviewed 27 November 2026.** Test totals,
+> commit references and working-tree statements below belong to those
+> implementation sessions. Current setup and verification are in the
+> [root README](README.md); the [Gate 0.5 report](GATE05_FINAL_REPORT.md)
+> records later detection, date-convention, linkage and accounting changes.
+> Python 3.10+ is now supported, RapidFuzz is optional, organizer integration
+> is implemented, and the [React dashboard](frontend/README.md) is a synthetic
+> demo with no engine connection. Small-group widening now drops finer coarse
+> geography while retaining a known district; the earlier full-geography
+> suppression described below was superseded in Gate 0.5.
+
 ## Follow-up: risk groups derived from released values (26 November 2026)
 
 This follow-up supersedes the risk-after implementation and test totals
@@ -347,9 +358,13 @@ python -m nijsetu validate --release RELEASE_DIR
 python -m nijsetu gate phase2 --output NEW_EVIDENCE_DIR
 ```
 
-Exit codes and policy defaults are unchanged from the prior revision of
-this report (§3/§4 there) — not restated here to avoid duplication; see
-`src/nijsetu/phase2/policy.py` and `src/nijsetu/cli.py` directly.
+Current exit codes are `0` for a clean release or successful validation,
+`2` for a release with holds or failed validation, `3` for blocked processing,
+and `4` for invocation/configuration errors. Policy defaults and the CLI
+contract are documented in the [root README](README.md#privacy-choices-you-can-inspect)
+and implemented in [policy.py](src/nijsetu/phase2/policy.py) and
+[cli.py](src/nijsetu/cli.py). `--config` accepts JSON overrides;
+[config/policy.yaml](config/policy.yaml) is a human-readable mirror only.
 
 ## 5. Test results (Python 3.11.16)
 
@@ -445,8 +460,9 @@ every patient) — re-confirmed directly.
 
 ### Environment note (task-local, isolated venv)
 
-The system `python3` on this machine is 3.14; the project requires
-`>=3.11,<3.12`. A task-local CPython 3.11.16 interpreter was already
+At the time of this Phase 2 session, the system `python3` was 3.14 and the
+project required `>=3.11,<3.12`. The current package requires **Python 3.10+**
+(see [pyproject.toml](pyproject.toml)). A task-local CPython 3.11.16 interpreter was already
 present at `~/.local/bin/python3.11` (untouched, not installed by this
 session). A fresh venv was created from it and bootstrapped with
 `ensurepip` (the isolated-venv pip issue some environments hit is simply
@@ -528,7 +544,7 @@ import, not a severed network namespace.
 ## 9. Remaining Phase 3 work
 
 Unchanged from the prior revision: frontend (Batch intake / Link review /
-Release checks — still no frontend code in this repository, so nothing
+Release checks — no frontend code existed at that stage, so nothing
 here needed preserving or touching), packaging for submission, and the
 organizer-facing benchmark suite (10k-record scaling, skew/fault
 workloads at that scale) are explicitly out of scope for this task and
@@ -557,10 +573,12 @@ all 378 files; the wheel installs and runs `sanitize`+`validate` fully
 offline outside the source checkout with no network-capable imports
 present.
 
-**Commands to rerun:**
+**Commands to rerun on the current checkout** (activate a Python 3.10+
+environment first; use fresh output directories and supply a local key file):
 ```
-pip install --no-build-isolation --no-index --find-links vendor/wheels -e ".[dev]"
+python -m pip install -e ".[dev]"
 python -m pytest tests/ -q
+python -m pip install ruff
 python -m ruff check src/ scripts/ tests/
 python -m nijsetu gate phase1 --output /tmp/g1
 python -m nijsetu gate phase2 --output /tmp/g2
@@ -570,9 +588,15 @@ python -m nijsetu sanitize --input /tmp/in --output /tmp/out --policy balanced -
 python -m nijsetu validate --release /tmp/out
 ```
 
+Development installation and isolated wheel builds can require network
+access. The vendored wheelhouse contains only an optional CPython 3.11
+RapidFuzz wheel, not the build tools, pytest or Faker. It cannot by itself
+satisfy an offline `.[dev]` installation. Installing a prebuilt NijSetu wheel
+with `--no-index` needs no runtime dependencies; see the current README.
+
 **Remaining concrete blocker:** none for the stated Phase 2 scope. §8's
 declared limitations are scope decisions with stated rationale, not
-failing checks. No frontend code exists in this repository to preserve or
+failing checks. No frontend code existed at that stage to preserve or
 regress; no unrelated user changes were present to disturb.
 
 ## 11. `git diff --stat` summary
@@ -595,5 +619,5 @@ regress; no unrelated user changes were present to disturb.
 ```
 Plus one new untracked test module: `tests/test_phase2_gap_fixes.py` (49
 tests). **No file outside `src/nijsetu/` and `tests/` was touched**; no
-frontend code exists in this repository, so none was touched or needed
+frontend code existed at that stage, so none was touched or needed
 preserving beyond that fact.

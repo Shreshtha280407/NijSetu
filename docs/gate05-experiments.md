@@ -1,5 +1,14 @@
 # Gate 0.5 experiment ledger
 
+> **Historical experiment record. Reviewed 27 November 2026.** Environment,
+> branch, commit state and intermediate measurements below describe the Gate
+> 0.5 session. That work and the synthetic dashboard have since been committed
+> and merged into `main`. Current setup and verification are in the
+> [root README](../README.md); final engine measurements are collected in the
+> [Gate 0.5 report](../GATE05_FINAL_REPORT.md). Intermediate results are
+> retained to document regressions and decisions, not presented as current
+> test totals or repository state.
+
 Every entry: hypothesis → failure mode → fixture → before → after → cost → decision.
 All numbers are measured, never estimated. `check_dev.py` is the organizer's own
 practice scorer (rough guide, not the official score); `validate_output.py` is the
@@ -293,8 +302,9 @@ run never implies an unchecked equivalence.
 
 **Decision: KEEP.** Strictly fewer failure modes, identical output, cost
 irrelevant at this scale. RapidFuzz stays declared as an optional `[speed]`
-extra and is still installed by `requirements.txt`, so the fast path is the
-default when the ABI matches.
+extra and is also listed in `requirements.txt`. The normal `pip install .`
+and `raksha.toml` setup install only the dependency-free core. Install
+`.[speed]` or `-r requirements.txt` explicitly to enable the accelerator.
 
 ### E3 — Detector coverage: labelled identifiers, grouped phones, insurance
 
@@ -648,7 +658,7 @@ hidden datasets (where the gazetteer is guaranteed to miss names).
 
 ## E8 — Objective D: identity resolution, precision-first
 
-**Reproduce.** Baseline identity on the practice corpus: precision 1.00,
+**Reproduce.** Gate 0 baseline identity on the practice corpus: precision 0.990,
 recall **0.213**, F0.5 0.57. 48 patients were each split into 5–6 separate
 pseudonyms. High precision, but the score's `identity_resolution` component
 was measuring an almost-unlinked corpus.
@@ -725,10 +735,10 @@ the father's or husband's name, which is why the forms collect it.
 
 | Metric | Gate 0 baseline | Mid-experiment (o19) | **Final (o23)** |
 |---|---|---|---|
-| Pairwise precision | 1.00 | 0.88 | **1.00** |
+| Pairwise precision | 0.990 | 0.88 | **1.00** |
 | Pairwise recall | 0.213 | 0.70 | **0.75** |
 | **F0.5** | 0.57 | 0.84 | **0.94** |
-| **Wrong merges** | 0 | **7** | **0** |
+| **Wrong merges** | 1 | **7** | **0** |
 | Records linked | — | — | 721 / 771 |
 | Clinical preservation | 95.8% | 96.2% | **97.4%** |
 | Overall leak | 7.5% | 5.6% | **5.6%** |
@@ -832,16 +842,16 @@ exactly the surface forms a value list would encode.
 
 | Metric | Gate 0 | After E8 | **After E9** |
 |---|---|---|---|
-| **Entities leaked** | 243 / 3240 (7.5%) | 180 (5.6%) | **0 / 3230 (0.0%)** |
-| MRN | 12.9% | 8.1% | **0.0%** |
-| PATIENT_NAME | 6.2% | 5.3% | **0.0%** |
+| **Entities leaked** | 243 / 3230 (7.5%) | 180 (5.6%) | **0 / 3230 (0.0%)** |
+| MRN | 11.3% | 8.1% | **0.0%** |
+| PATIENT_NAME | 4.7% | 5.3% | **0.0%** |
 | VILLAGE | — | 21.3% | **0.0%** |
 | `key` / `header` channel | 50% / 50% | 50% / 50% | **0% / 0%** |
-| `filename` channel | 41.7% | 41.7% | **0.0%** |
-| deva / hinglish | 16.1% / 20.7% | 12.6% / 22.5% | **0.0% / 0.0%** |
+| `filename` channel | 64.6% | 41.7% | **0.0%** |
+| deva / hinglish | 16.1% / 18.0% | 12.6% / 22.5% | **0.0% / 0.0%** |
 | Clinical preservation | 95.8% | 97.4% | **97.3%** |
-| Identity P / R / F0.5 | 1.00 / 0.21 / 0.57 | 1.00 / 0.75 / 0.94 | **1.00 / 0.74 / 0.93** |
-| Wrong merges | 0 | 0 | **0** |
+| Identity P / R / F0.5 | 0.990 / 0.213 / 0.57 | 1.00 / 0.75 / 0.94 | **1.00 / 0.74 / 0.93** |
+| Wrong merges | 1 | 0 | **0** |
 | Files quarantined | 30 | 18 | **11** |
 | pytest | 281p / 3f | 375p | **457p** |
 | Wall / RSS | 2.57 s | 10.2 s | **5.3 s / 56.6 MB** |
@@ -900,6 +910,14 @@ public data alone, with nothing leaked.
 | geography: none | 189 | 11 | 788 | 97.3% | **0** | **0** |
 | strict preset | 190 | 10 | 793 | 87.0% | **0** | **0** |
 
+The `clinical` column comes from `scripts/policy_tradeoff.py`: it searches
+each expected clinical string across all exported text files together. The
+organizer's per-file `check_dev.py` scorer reports **97.3%** for balanced;
+the batch-wide search above reports **98.4%**. A string surviving in another
+record can satisfy the latter, so it is a weaker utility check and those
+percentages must not be compared as the same metric. These are recorded
+experiment results, not a fresh rerun during this documentation review.
+
 **Findings, including the inconvenient ones.**
 
 * **Suppressing district eliminates all measured population uniqueness** (4 → 0
@@ -919,8 +937,11 @@ public data alone, with nothing leaked.
   advertisement.
 * **The shipped `k_threshold: 3` widening does not catch these four rows**, and
   structurally cannot: `risk.escalate_for_small_groups` measures cohort size
-  *within the release*, where a cohort of one patient's several records looks
-  large, while the attacker's k is in the *population*. Closing this properly
+  *within the release* over **distinct patient clusters**, while the attacker's
+  k is in the *population*. Repeat encounters do not increase the engine's
+  group sizes. The two checks also use different attributes: engine groups
+  use age band, geography and visit month; this population probe uses district,
+  age band and gender. Closing this properly
   needs population priors the system must not assume at run time.
 
 **Decision: keep `geography_level: district`.** District-level geography is a

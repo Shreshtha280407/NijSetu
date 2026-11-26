@@ -47,7 +47,7 @@ This is an interactive **synthetic demo**, not an engine integration. Progress, 
 
 The file picker and drop zone read filenames, sizes, and extensions only. They do not read or send file contents. Adding local files replaces the built-in sample and disables simulated processing. Reload the sample to explore the demo again. CSV, TSV, JSON (including FHIR JSON), and TXT have supported intake labels; other extensions are quarantined. These labels are not content/schema validation.
 
-State lives in React memory and clears on refresh. There are no cloud requests, analytics, authentication, browser-storage writes, or runtime font/CDN dependencies. The Python source and CLI are unchanged.
+State lives in React memory and clears on refresh. There are no cloud requests, analytics, authentication, browser-storage writes, or runtime font/CDN dependencies. The frontend does not invoke the Python source or CLI.
 
 ## Straightforward source structure
 
@@ -100,6 +100,12 @@ PLAYWRIGHT_SLOW_MO=320 npm run test:live
 `npm test` runs the same checks headlessly. `npm run test:report` opens the HTML report. Test videos and screenshots are written to ignored `test-results/`; failure traces are retained. The suite covers landing navigation, the full demo/download flow, release gating, policy invalidation, uploaded-file isolation, search, mobile menus, responsive overflow, local fonts, external-request blocking, direct routing and 404 recovery. Populated pages are checked at 320, 375, 768, 1024, 1280 and 1440 pixels, with phone and desktop screenshots attached to the report.
 
 Production static hosting must fall back to `index.html` for client-side routes. Local development and preview already support those routes.
+
+Verified on **27 November 2026** with Node.js 26.12.0 and Google Chrome:
+`npm run build` passed and `npm test` passed **9/9** checks, including populated
+layouts at all six documented widths. The multi-width timeout reported during
+the earlier README capture did not recur; no application or browser-test
+source changes were needed for this rerun. See the [verification notes](../docs/assets/readme/README.md#fresh-verification).
 
 ## Font notices
 

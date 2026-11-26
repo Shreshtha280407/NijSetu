@@ -4,8 +4,8 @@
 Pulls the *actual* static first/last-name tuples out of Faker's pinned
 en_IN and hi_IN person providers (Faker==40.63.0, MIT licensed) and adds a
 small set of curated variants for names those locales are known to miss
-(e.g. "Arif" / "Imran" are absent from en_IN -- verified below -- which is
-exactly why they are used as cue-only, gazetteer-absent fixtures instead).
+(e.g. "Arif" / "Imran" are absent from en_IN). Curated additions ARE bundled;
+gazetteer-absent fixtures use separate names such as "Zufishan".
 
 Faker is NOT a runtime dependency: this script runs once, offline, and
 writes static JSON that the shipped package reads directly.
@@ -33,7 +33,7 @@ CURATED_SURNAMES = [
 
 
 def main() -> None:
-    assert "Arif" not in EnIN.first_names, "Arif unexpectedly present in Faker en_IN; re-check held-out design"
+    assert "Arif" not in EnIN.first_names, "Arif unexpectedly present in Faker en_IN; re-check curated provenance"
 
     first_names = sorted(set(EnIN.first_names) | set(HiIN.first_names) | set(CURATED_FIRST_NAMES))
     surnames = sorted(set(EnIN.last_names) | set(HiIN.last_names) | set(CURATED_SURNAMES))
@@ -51,11 +51,16 @@ def main() -> None:
         "from Faker's `en_IN` person provider (Faker==40.63.0, MIT license).\n"
         f"- {len(set(HiIN.first_names))} first names and {len(set(HiIN.last_names))} surnames "
         "from Faker's `hi_IN` person provider (Faker==40.63.0, MIT license).\n"
-        f"- {len(CURATED_FIRST_NAMES)} first names and {len(CURATED_SURNAMES)} surnames "
-        "curated by hand (not sourced from Faker) to cover common South Asian "
-        "Muslim-origin names absent from the above locales; used deliberately "
-        "to validate held-out, gazetteer-absent name detection.\n\n"
+        f"- {len(CURATED_FIRST_NAMES)} first-name entries and {len(CURATED_SURNAMES)} surname entries "
+        "curated by hand (not sourced from Faker) to supplement the above locales "
+        "with common South Asian Muslim-origin names and variants. These entries "
+        "are included in the bundled gazetteer; they are not gazetteer-absent test "
+        "names. Duplicates across sources are removed in the combined lists.\n\n"
         f"Combined: {len(first_names)} first names, {len(surnames)} surnames.\n\n"
+        "The gazetteer-absent fixtures use separate names, such as `Zufishan`, in\n"
+        "`tests/fixtures/heldout/gazetteer_absent/`. Regenerate the data and this notice\n"
+        "with `python scripts/gen_gazetteer.py` after installing `.[dev]` (Faker is a\n"
+        "development dependency, not a runtime dependency).\n\n"
         "Faker license: MIT. See https://github.com/joke2k/faker/blob/master/LICENSE.txt\n"
         "The organizer's data generator is unverified; this gazetteer is a seed, not a claim "
         "of coverage against any hidden judge dataset.\n",
