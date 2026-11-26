@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-11-26T19:32:22.823Z",
+  "baseURL": "http://127.0.0.1:5173",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "scope": "Real Chrome recording of the existing React synthetic demo; no Python engine integration or real patient data.",
+  "chapters": [
+    {
+      "title": "Product introduction",
+      "seconds": 0
+    },
+    {
+      "title": "Synthetic batch intake",
+      "seconds": 6
+    },
+    {
+      "title": "Link evidence and an uncertain record",
+      "seconds": 13
+    },
+    {
+      "title": "Explicit exclusion and synthetic preview",
+      "seconds": 20.9
+    },
+    {
+      "title": "Policy comparison",
+      "seconds": 28.4
+    }
+  ],
+  "pageErrors": [],
+  "externalRequests": [],
+  "assertions": [
+    "Held record excluded",
+    "Download gated before review",
+    "Downloaded JSON has demo=true",
+    "Three linked sources",
+    "Policy change invalidates run"
+  ],
+  "temporaryDirectory": "/tmp/nijsetu-readme-REnu96"
+}
