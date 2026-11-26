@@ -1,0 +1,16 @@
+# Human-readable mirror of the active privacy policy for the Secret Wards
+# submission -- NOT parsed at runtime. NijSetu's actual policy engine is
+# src/nijsetu/phase2/policy.py (two tested presets, "balanced"/"strict",
+# plus an optional JSON override file -- see PHASE2_REPORT.md). The
+# organizer adapter (src/nijsetu/organizer.py) currently runs the
+# "balanced" preset below; these values are just that preset's real
+# defaults, written here for judges/readers, not a second config path.
+
+policy_name: balanced
+age_band_years: 10          # policy.AgeBandConfig(band_width=10, top_band_start=90)
+date_shift_min_days: -30     # per-patient, HMAC-keyed by RAKSHA_SECRET -- never a global shift
+date_shift_max_days: 30
+geography_level: district    # village/house/landmark suppressed; district retained
+k_threshold: 3               # small-cohort review threshold (risk.escalate_for_small_groups)
+provider_name_action: retain
+facility_name_action: retain

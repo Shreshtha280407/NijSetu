@@ -118,7 +118,61 @@ def parse_json_document(
         return JsonDocumentShape("WRAPPED", record_wrapper_key, wrapper_meta, isinstance(wrapped, list), records)
     if isinstance(data, list):
         return JsonDocumentShape("LIST", None, {}, False, data)
+    auto_key = _auto_detect_wrapper_key(data) if isinstance(data, dict) else None
+    if auto_key is not None:
+        wrapped = data[auto_key]
+        wrapper_meta = {k: v for k, v in data.items() if k != auto_key}
+        return JsonDocumentShape("WRAPPED", auto_key, wrapper_meta, True, wrapped)
     return JsonDocumentShape("OBJECT", None, {}, False, [data])
+
+
+_UNSAFE_AS_STRANDED_SIBLING = frozenset({
+    FieldRole.PATIENT_NAME, FieldRole.RELATIVE_NAME, FieldRole.PATIENT_IDENTIFIER,
+    FieldRole.CONTACT, FieldRole.FINE_ADDRESS,
+})
+
+
+def _auto_detect_wrapper_key(data: dict) -> str | None:
+    """No `--record-wrapper-key` was declared (the organizer's input mixes
+    several JSON shapes under one run -- "visits", "results", and others --
+    so one global config value cannot name them all). If exactly ONE
+    top-level key holds a non-empty list of objects, that is unambiguously
+    the per-patient/per-visit record array (every other export convention
+    this codebase has seen uses a list-of-objects specifically for
+    records, never for scalar/metadata values) -- auto-adopt it instead of
+    silently treating the WHOLE file as a single record, which would
+    merge every record's evidence (and therefore every different patient
+    inside it) into one identity cluster. Two or more candidate keys is
+    genuinely ambiguous and is deliberately left alone (returns None, the
+    existing single-record fallback) rather than guessing wrong.
+
+    A candidate is rejected if any OTHER top-level key's own name resolves
+    (via the same header-alias table every structured field uses) to a
+    directly-identifying role -- e.g. a single lab report shaped
+    `{"patient": {"name": ..., "phone": ...}, "panels": [...]}` has exactly
+    one list-of-dicts key ("panels", the report's own internal line items),
+    but "patient" is that SAME record's own identifying block, not batch
+    metadata about multiple records. Auto-adopting "panels" here would
+    strand "patient" as supposed "wrapper metadata" sitting outside any
+    record -- wrongly triggering the whole-file-unsafe hold instead of the
+    normal single-document scan/mask path that already handles this shape
+    correctly. A genuine batch-export wrapper (hospital/system/timestamp/
+    file-path bookkeeping) never names a sibling key after the identifying
+    content itself, so this check costs nothing there."""
+    candidates = [
+        k for k, v in data.items()
+        if isinstance(v, list) and v and all(isinstance(item, dict) for item in v)
+    ]
+    if len(candidates) != 1:
+        return None
+    key = candidates[0]
+    for sibling_key in data:
+        if sibling_key == key:
+            continue
+        _canonical, role = resolve_header(sibling_key)
+        if role in _UNSAFE_AS_STRANDED_SIBLING:
+            return None
+    return key
 
 
 def parse_json_tree(

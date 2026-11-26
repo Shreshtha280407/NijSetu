@@ -78,12 +78,63 @@ def test_csv_duplicate_header_holds_whole_file():
     assert "DUPLICATE_HEADER" in result.file_record.reason_codes
 
 
-def test_csv_ambiguous_alias_headers_not_guessed():
+def test_csv_ambiguous_alias_headers_are_reported_but_keep_their_role():
+    """Two columns claiming one canonical field is a genuine ambiguity about
+    WHICH column is the real one -- and it is reported as such -- but it is
+    not an ambiguity about whether the values are personal data.
+
+    This previously demoted both columns to OTHER, which resolves the
+    ambiguity in the only unsafe direction: OTHER means RETAIN, so the
+    values were published verbatim. The role must survive so the privacy
+    action still applies; only the field's identity meaning is unresolved.
+    """
+    from nijsetu.schema import FieldRole
+
     raw = b"Patient Name,Pt Name\nA,B\n"
     result = parse_csv(raw, "r.csv", 0, "csv")
     assert "AMBIGUOUS_HEADER_MAPPING" in result.file_record.reason_codes
+    assert all(f.role == FieldRole.PATIENT_NAME for f in result.rows[0]), (
+        "an ambiguous mapping must not strip the PII role, or the values get retained in clear"
+    )
+
+
+def test_colliding_identifier_columns_do_not_retain_identifiers_in_clear():
+    """Regression for a measured 230-identifier leak.
+
+    A lab export legitimately carries both a specimen number and a patient
+    number. When both headers resolved to the same canonical, the ambiguity
+    guard demoted them to OTHER and every MRN in four lab CSVs was published
+    verbatim. Specimen- and patient-level keys now hold distinct canonicals,
+    so no collision occurs at all -- and even if one did, the role survives.
+    """
     from nijsetu.schema import FieldRole
-    assert all(f.role == FieldRole.OTHER for f in result.rows[0])
+
+    raw = b"sample_id,patient_name,uhid,test,result\nS26000199,Geeta Chauhan,JJH-0077132,Haemoglobin,11.0\n"
+    result = parse_csv(raw, "r.csv", 0, "csv")
+    assert "AMBIGUOUS_HEADER_MAPPING" not in result.file_record.reason_codes
+    by_header = {f.source.path: f.role for f in result.rows[0]}
+    assert by_header["sample_id"] == FieldRole.PATIENT_IDENTIFIER
+    assert by_header["uhid"] == FieldRole.PATIENT_IDENTIFIER
+    assert by_header["patient_name"] == FieldRole.PATIENT_NAME
+    # Clinical columns must stay untouched.
+    assert by_header["test"] == FieldRole.OTHER
+    assert by_header["result"] == FieldRole.OTHER
+
+
+def test_event_level_identifier_schemes_are_not_identity_anchors():
+    """A specimen/episode/bill number identifies an EVENT. One patient owns
+    many, so treating them as patient-level anchors turns ordinary repeat
+    activity into an identifier contradiction and vetoes genuine merges.
+    They must still be tokenized (they are patient-linkable), just never
+    used as identity anchors."""
+    from nijsetu.ingest.header_aliases import EVENT_SCOPED_SCHEMES, resolve_header
+
+    for header in ("sample_id", "accession no", "IPD No", "case no", "bill no"):
+        canonical, _role = resolve_header(header)
+        assert canonical in EVENT_SCOPED_SCHEMES, f"{header!r} -> {canonical!r} should be event-scoped"
+    for header in ("uhid", "mrn", "patient id", "aadhaar", "abha number"):
+        canonical, _role = resolve_header(header)
+        assert canonical not in EVENT_SCOPED_SCHEMES, f"{header!r} -> {canonical!r} must stay a patient anchor"
 
 
 def test_tsv_dialect():

@@ -6,13 +6,27 @@ import re
 from datetime import datetime
 
 from ..config import ScoringConfig, resolve_configured_issuer
+from ..ingest.header_aliases import EVENT_SCOPED_SCHEMES
 from ..schema import Feature, FieldRole, LinkDecision, PatientCandidateFeatures, ScopedIdentifier
+from ..detect.names import strip_relation_prefix
 from ..translit import consonant_skeleton, tokenize_name, vowel_collapsed
 from .candidates import generate_candidate_pairs
 from .cluster import ClusterResolver
+from .idkeys import canonical_identifier, issuer_prefix_of
 from .scoped import build_scoped_index, exact_match_edges
 
 _DATE_FORMATS = ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d", "%d %b %Y", "%d %B %Y")
+
+# Tokens that reach the name list through a free-text name hit but are
+# structural or clinical vocabulary, not parts of a person's name. Excluded
+# from the identity feature vector only -- detection still treats the span
+# however it classified it; this is purely about not letting a lab panel name
+# or a Hindi function word act as name evidence for linkage.
+_NON_NAME_TOKENS = frozenset({
+    "routine", "panel", "profile", "report", "test", "sample", "lab",
+    "patient", "name", "ward", "bed", "room", "din", "pet", "dawai",
+    "review", "weeks", "days", "time", "visit", "note", "notes",
+})
 
 
 def _parse_year(text: str) -> int | None:
@@ -23,6 +37,25 @@ def _parse_year(text: str) -> int | None:
             continue
     m = re.search(r"\b(19|20)\d{2}\b", text)
     return int(m.group(0)) if m else None
+
+
+_MIN_COMPARABLE_PHONE_DIGITS = 7
+_NATIONAL_NUMBER_DIGITS = 10
+
+
+def _canonical_phone(text: str) -> str | None:
+    """The national subscriber number, or None if there is not enough of one.
+
+    An Indian mobile is ten digits; exports write it with and without the
+    `+91` country code and with and without a trunk `0`. Keeping the LAST ten
+    digits makes every spelling of one number compare equal, which is required
+    both for a match to be found and -- more importantly -- for a genuine
+    disagreement between two different numbers to be trustworthy.
+    """
+    digits = re.sub(r"\D", "", text)
+    if len(digits) < _MIN_COMPARABLE_PHONE_DIGITS:
+        return None
+    return digits[-_NATIONAL_NUMBER_DIGITS:] if len(digits) >= _NATIONAL_NUMBER_DIGITS else digits
 
 
 def resolve_fallback_issuer(
@@ -56,23 +89,49 @@ def build_candidate_features(
         (f for f in features if f.role == FieldRole.PATIENT_NAME),
         key=lambda f: f.char_start,
     )
+    # De-duplicated, order-preserving. A name mentioned several times in one
+    # record ("Sukhwinder ji ... Sukhwinder Kaur") previously contributed its
+    # tokens repeatedly, which inflated token-sequence similarity and -- worse
+    # -- corrupted the "shared surname" heuristic, since that reads the LAST
+    # token of this list and a repeated given name can end up there. A lab
+    # panel name ("Routine") landing in the list via a free-text name hit had
+    # the same effect.
     name_tokens: list[str] = []
+    seen_tokens: set[str] = set()
     for f in name_features:
-        name_tokens.extend(tokenize_name(f.original_text))
+        for token in tokenize_name(f.original_text):
+            if token in _NON_NAME_TOKENS or token in seen_tokens:
+                continue
+            seen_tokens.add(token)
+            name_tokens.append(token)
 
+    # ONLY a date of birth may supply a birth year. This previously took the
+    # first DATE feature of any kind, so a visit date became the "birth year"
+    # -- an OPD visit in 2026 was recorded as born in 2026. That made
+    # DOB_YEAR_MATCH fire between two records that merely shared a visit
+    # month, and (worse) made a genuine DOB disagreement unusable as evidence
+    # against a match, because one side's "birth year" was not a birth year at
+    # all. The distinction matters now that a year MISMATCH is a veto.
     birth_year = None
     for f in features:
-        if f.role == FieldRole.DATE:
+        if f.role == FieldRole.DATE and f.scheme == "dob":
             year = _parse_year(f.original_text)
             if year is not None:
                 birth_year = year
                 break
 
-    phone_digits = tuple(
-        re.sub(r"\D", "", f.original_text)
+    # Canonicalised to the national subscriber number, so the SAME phone
+    # written two ways compares equal. "+91 78044 94655" and "7804494655" are
+    # one number; comparing raw digit strings made them look like two, which
+    # both lost a corroborating match and -- once a phone disagreement became
+    # a veto -- manufactured contradictions between a patient's own records.
+    phone_digits = tuple(dict.fromkeys(
+        canonical
         for f in features
-        if f.role == FieldRole.CONTACT and len(re.sub(r"\D", "", f.original_text)) >= 7
-    )
+        if f.role == FieldRole.CONTACT
+        for canonical in [_canonical_phone(f.original_text)]
+        if canonical
+    ))
     address_tokens = tuple(
         tok for f in features if f.role in (FieldRole.FINE_ADDRESS, FieldRole.COARSE_GEOGRAPHY)
         for tok in re.findall(r"[a-zA-Z]+", f.original_text.lower())
@@ -95,6 +154,12 @@ def build_candidate_features(
     #      "UHID 001"). Rows within the SAME file still share this scope,
     #      since they are, by construction, the same declared input source.
     fallback_issuer = resolve_fallback_issuer(features, source_files, source_system_map)
+    # Only PATIENT-level identifiers become identity anchors. An event-level
+    # identifier (specimen / episode / bill number) is excluded: one patient
+    # legitimately owns many of them, so admitting them here turns normal
+    # repeat activity into an ID_CONFLICT that vetoes a genuine merge. They
+    # are still detected and tokenized for privacy -- this filter only
+    # governs identity semantics. See header_aliases.EVENT_SCOPED_SCHEMES.
     scoped_ids = tuple(
         ScopedIdentifier(
             issuer=f.issuer or fallback_issuer,
@@ -102,7 +167,35 @@ def build_candidate_features(
         )
         for f in features
         if f.role == FieldRole.PATIENT_IDENTIFIER and f.scheme and f.original_text.strip()
+        and f.scheme not in EVENT_SCOPED_SCHEMES
     )
+
+    # Named relatives, keyed by WHICH relative (see detect.names.
+    # relation_for_relative). A relative whose relationship is unstated is
+    # skipped rather than guessed: comparing a father's name against an
+    # unlabelled attendant's name is not evidence either way.
+    relatives: dict[str, list[str]] = {}
+    for f in features:
+        if f.role != FieldRole.RELATIVE_NAME or not f.scheme:
+            continue
+        tokens = [
+            t for t in tokenize_name(strip_relation_prefix(f.original_text))
+            if t not in _NON_NAME_TOKENS
+        ]
+        if tokens:
+            relatives.setdefault(f.scheme, []).extend(tokens)
+    relative_names = tuple(
+        (relation, tuple(dict.fromkeys(tokens)))
+        for relation, tokens in sorted(relatives.items())
+    )
+
+    # The same identifier values, stripped of their issuer namespace. Built
+    # from `scoped_ids` so the event-level exclusion above applies here too.
+    identifier_keys = tuple(dict.fromkeys(
+        (ident.scheme, issuer_prefix_of(ident.value) or "", canonical_identifier(ident.value))
+        for ident in scoped_ids
+        if canonical_identifier(ident.value)
+    ))
 
     return PatientCandidateFeatures(
         record_key=record_key,
@@ -114,6 +207,8 @@ def build_candidate_features(
         address_tokens=address_tokens,
         scoped_ids=scoped_ids,
         source_files=source_files,
+        identifier_keys=identifier_keys,
+        relative_names=relative_names,
     )
 
 

@@ -7,7 +7,38 @@ from __future__ import annotations
 
 import re
 
-_BP_VALUE = re.compile(r"\b\d{2,3}\s*/\s*\d{2,3}\b")
+_BP_VALUE = re.compile(r"\b(\d{2,3})\s*/\s*(\d{2,3})\b")
+
+# A "NN/NN" shape is also the middle of a day/month/year date: "30/10/2026"
+# offers "30/10". Treating that as a blood pressure is not merely untidy -- the
+# bogus measurement is snapshotted from the INPUT, the real date is then
+# shifted, the measurement no longer re-derives from the OUTPUT, the
+# clinical-invariant check reports CLINICAL_MEASUREMENT_LOST_OR_CHANGED, and
+# the only record in the document is held, which quarantines the whole file.
+# Six discharge summaries were lost this way on the practice data.
+#
+# Two independent guards, both required:
+#   * date context -- a further "/" plus digits on either side means this is a
+#     date fragment, not a reading;
+#   * physiological plausibility -- a real cuff reading has systolic 60-300,
+#     diastolic 30-200, and systolic above diastolic. "30/10" fails on all
+#     three; "126/86" passes.
+_BP_SYSTOLIC_RANGE = (60, 300)
+_BP_DIASTOLIC_RANGE = (30, 200)
+_DATE_CONTEXT_AFTER = re.compile(r"\s*/\s*\d")
+_DATE_CONTEXT_BEFORE = re.compile(r"\d\s*/\s*$")
+
+
+def _is_plausible_blood_pressure(systolic: int, diastolic: int) -> bool:
+    return (
+        _BP_SYSTOLIC_RANGE[0] <= systolic <= _BP_SYSTOLIC_RANGE[1]
+        and _BP_DIASTOLIC_RANGE[0] <= diastolic <= _BP_DIASTOLIC_RANGE[1]
+        and systolic > diastolic
+    )
+
+
+def _is_date_fragment(text: str, start: int, end: int) -> bool:
+    return bool(_DATE_CONTEXT_AFTER.match(text, end)) or bool(_DATE_CONTEXT_BEFORE.search(text[:start]))
 _HBA1C = re.compile(r"\bHbA1c\b\s*[:\-]?\s*\d{1,2}(?:\.\d+)?\s*%", re.I)
 _DOSE = re.compile(
     r"\b([A-Z][a-zA-Z]+)\s+(\d+(?:\.\d+)?)\s*(mg|ml|mcg|g|units?)\b"
@@ -29,6 +60,10 @@ def find_clinical_measurements(text: str) -> list[tuple[int, int, str]]:
     """Returns (start, end, kind) spans that must be retained as clinical values."""
     out: list[tuple[int, int, str]] = []
     for m in _BP_VALUE.finditer(text):
+        if _is_date_fragment(text, m.start(), m.end()):
+            continue
+        if not _is_plausible_blood_pressure(int(m.group(1)), int(m.group(2))):
+            continue
         out.append((m.start(), m.end(), "BLOOD_PRESSURE"))
     for m in _HBA1C.finditer(text):
         out.append((m.start(), m.end(), "HBA1C"))

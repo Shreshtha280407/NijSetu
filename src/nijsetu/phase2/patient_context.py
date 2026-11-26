@@ -11,6 +11,7 @@ identity, per the blueprint: unresolved identity must not mean quarantine.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from ..schema import FieldRole
@@ -29,7 +30,7 @@ class PatientContext:
     date_shift_days: int
     reference_event_date: object | None  # datetime.date | None
     age_band: str | None
-    age_band_reason: str  # "DERIVED" | "NO_DOB" | "NO_REFERENCE_EVENT" | "DOB_UNPARSEABLE"
+    age_band_reason: str  # "DERIVED" | "DERIVED_FROM_STATED_AGE" | "NO_DOB" | "NO_REFERENCE_EVENT" | "DOB_UNPARSEABLE"
     # Set after risk.escalate_for_small_groups widens this patient's small
     # cohort by dropping geography -- forces the actual geography field to
     # SUPPRESS in the transform so risk_after (computed from the same
@@ -43,7 +44,7 @@ def _earliest_reference_event(record_features_by_cluster: list[list]) -> object 
         for f in feats:
             if f.role == FieldRole.DATE and f.scheme in _REFERENCE_EVENT_SCHEMES:
                 try:
-                    parsed = parse_flexible_date(f.original_text)
+                    parsed = parse_flexible_date(f.original_text, getattr(f, 'date_convention', None))
                 except DateParseError:
                     continue
                 if best is None or parsed.value < best:
@@ -51,12 +52,33 @@ def _earliest_reference_event(record_features_by_cluster: list[list]) -> object 
     return best
 
 
+# A stated age ("Umar: 47", "Age/Sex: 46 Yrs/M") is weaker evidence than a DOB
+# -- it is only true as at some unknown date -- so it is used only when no
+# parseable DOB exists anywhere in the cluster. Bounded to a plausible human
+# lifespan so a mis-parsed field cannot invent a band.
+_MAX_PLAUSIBLE_AGE = 120
+_AGE_DIGITS = re.compile(r"\b(\d{1,3})\b")
+
+
+def _stated_age(record_features_by_cluster: list[list]) -> int | None:
+    for feats in record_features_by_cluster:
+        for f in feats:
+            if f.role == FieldRole.DATE and f.scheme == "age":
+                m = _AGE_DIGITS.search(f.original_text)
+                if m is None:
+                    continue
+                age = int(m.group(1))
+                if 0 <= age <= _MAX_PLAUSIBLE_AGE:
+                    return age
+    return None
+
+
 def _dob_value(record_features_by_cluster: list[list]):
     for feats in record_features_by_cluster:
         for f in feats:
             if f.role == FieldRole.DATE and f.scheme == "dob":
                 try:
-                    return parse_flexible_date(f.original_text).value
+                    return parse_flexible_date(f.original_text, getattr(f, 'date_convention', None)).value
                 except DateParseError:
                     return "UNPARSEABLE"
     return None
@@ -80,16 +102,26 @@ def build_patient_contexts(
         ref_event = _earliest_reference_event(feats_lists)
         dob = _dob_value(feats_lists)
         age_band = None
-        if dob is None:
-            reason = "NO_DOB"
-        elif dob == "UNPARSEABLE":
-            reason = "DOB_UNPARSEABLE"
-        elif ref_event is None:
-            reason = "NO_REFERENCE_EVENT"
-        else:
-            age = age_years_at(dob, ref_event)
-            age_band = policy.age_band.band_for(age)
+        if dob not in (None, "UNPARSEABLE") and ref_event is not None:
+            age_band = policy.age_band.band_for(age_years_at(dob, ref_event))
             reason = "DERIVED"
+        else:
+            # Fall back to an explicitly stated age. Without this a record
+            # carrying an age column but no DOB (or no reference event to
+            # measure a DOB against) got NO band at all, so the age field was
+            # suppressed outright -- losing a truthful generalization the
+            # scoring explicitly asks for, while an exact age elsewhere in the
+            # same release stayed a re-identification key.
+            stated = _stated_age(feats_lists)
+            if stated is not None:
+                age_band = policy.age_band.band_for(stated)
+                reason = "DERIVED_FROM_STATED_AGE"
+            elif dob is None:
+                reason = "NO_DOB"
+            elif dob == "UNPARSEABLE":
+                reason = "DOB_UNPARSEABLE"
+            else:
+                reason = "NO_REFERENCE_EVENT"
 
         out[cluster_id] = PatientContext(
             cluster_id=cluster_id, canonical_key=canonical_key, patient_token=token,

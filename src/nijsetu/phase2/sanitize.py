@@ -8,6 +8,7 @@ import csv
 import hashlib
 import io
 import json
+import re
 import resource
 import time
 from collections import Counter, defaultdict
@@ -18,6 +19,7 @@ from typing import Any
 
 from ..config import AppConfig
 from ..detect import detect_in_text
+from ..detect.paths import REDACTED_PATH, looks_like_path, path_carries_pii
 from ..ingest import run_ingest
 from ..ingest.encoding import detect_and_decode
 from ..ingest.fhir_adapter import _extract_resource, parse_fhir_tree
@@ -26,14 +28,17 @@ from ..ingest.json_adapter import JsonDocumentShape, parse_json_document
 from ..identity import resolve_fallback_issuer
 from ..ingest.registry import discover_files
 from ..plan.builder import analyze_ingest_result
-from ..schema import Disposition, FieldRole, SourceCoordinate
+from ..schema import Action, Disposition, FieldRole, SourceCoordinate
 from . import keys, risk
+from .actions import decide_feature_action
 from .clinical_invariants import compare_assertions, extract_assertions
+from .date_convention import DateConventionResolver
 from .fhir_rewrite import sanitize_fhir_document
 from .leak_scan import scan_generic_residual_patterns, scan_literals
 from .manifest import build_manifest
-from .patient_context import build_patient_contexts
+from .patient_context import PatientContext, build_patient_contexts
 from .policy import PolicyConfig
+from .spans import apply_span_replacements, resolve_overlaps
 from .staging import Staging, StagingError, cleanup_stale_staging
 from .transform_csv import transform_csv
 from .transform_json import transform_json_record
@@ -41,6 +46,7 @@ from .transform_txt import transform_txt
 from .validate import validate_release
 
 PRIVATE_LEAK_ROLES = (FieldRole.PATIENT_NAME, FieldRole.RELATIVE_NAME, FieldRole.PATIENT_IDENTIFIER, FieldRole.CONTACT, FieldRole.FINE_ADDRESS)
+
 
 
 def _dump_json_preserving_numbers(obj: Any, depth: int = 0) -> str:
@@ -83,6 +89,15 @@ class SanitizeOutcome:
     reason_code: str | None
     report: dict
     output_dir: Path | None
+    # Populated only when run_sanitize(..., organizer_contract=True): one
+    # entry per actually-released record/document, carrying exactly what an
+    # external records.jsonl-style audit trail needs (file_no + locator +
+    # claimed pseudonym-or-None). None for the default internal contract, so
+    # every existing caller/test that never reads this field is unaffected.
+    records_index: list[dict] | None = None
+    # organizer_contract only: file_no -> every PII literal detected in that
+    # input file's own content, for the adapter's filename-safety decision.
+    file_literals: dict[int, list[str]] | None = None
 
 
 class _FhirParseResultShim:
@@ -107,6 +122,16 @@ def _hold_entry(
     if fmt is not None:
         entry["format"] = fmt
     return entry
+
+
+def _json_pointer_escape(token: str) -> str:
+    """RFC 6901: `~` becomes `~0` and `/` becomes `~1`, in that order.
+
+    A wrapper key is attacker-influenced input (it comes from the source
+    file), so a key containing a slash would otherwise emit a pointer that
+    silently addresses a different, deeper location.
+    """
+    return token.replace("~", "~0").replace("/", "~1")
 
 
 def _sha256_file(path: Path) -> str:
@@ -143,6 +168,86 @@ def _reparse_json_value_features(value, path: str = "") -> list:
     return feats
 
 
+# File-level JSON wrapper metadata (every top-level key besides the
+# configured/auto-detected record-array key) has no single owning patient
+# -- DATE and COARSE_GEOGRAPHY are the only two roles whose normal handling
+# depends on a specific patient's date-shift/geography-suppression decision
+# (see patient_context.PatientContext), so this placeholder is passed to
+# decide_feature_action only for roles confirmed NOT to read any of its
+# fields (PATIENT_NAME/RELATIVE_NAME/PATIENT_IDENTIFIER/PROVIDER_NAME/
+# FACILITY_NAME/CONTACT/FINE_ADDRESS) -- DATE/COARSE_GEOGRAPHY are routed
+# around decide_feature_action entirely in _sanitize_wrapper_metadata below.
+_METADATA_PLACEHOLDER_CTX = PatientContext(
+    cluster_id="__file_metadata__", canonical_key="__file_metadata__", patient_token="",
+    date_shift_days=0, reference_event_date=None, age_band=None, age_band_reason="NO_REFERENCE_EVENT",
+)
+_METADATA_FORCE_SUPPRESS_ROLES = (FieldRole.DATE, FieldRole.COARSE_GEOGRAPHY)
+
+
+def _sanitize_wrapper_metadata(meta: dict, policy: PolicyConfig, release_key: bytes) -> dict:
+    """Sanitizes file-level JSON wrapper metadata IN PLACE instead of
+    discarding every record in the file merely because the metadata alone
+    carries PII. This is exactly the dataset's documented "hidden leakage"
+    trap (PII hidden in export metadata, e.g. a `source_path` embedding a
+    patient name, per DATASET.md) -- the organizer's spec expects it
+    sanitized, not used as grounds to drop a whole file's clinical content
+    (SCORING.md's quarantine-handling and report-honesty criteria both
+    penalize exactly that over-suppression).
+
+    DATE/COARSE_GEOGRAPHY content is always suppressed outright (no
+    per-patient shift/suppress-geography decision exists at file level;
+    this is privacy-conservative, never a utility loss -- an export
+    timestamp or a bare district in file bookkeeping is not clinical
+    data). Every other role reuses the exact same `decide_feature_action`
+    policy decision as every other surface in this module."""
+    feats = _reparse_json_value_features(meta)
+    feats_by_path: dict[str, list] = defaultdict(list)
+    for f in feats:
+        feats_by_path[f.source.path].append(f)
+
+    def transform_scalar(value: Any, path: str) -> Any:
+        # A path-shaped value is decided as a WHOLE, before any span logic.
+        # Span surgery on a path leaves residue: `_` is a word character, so
+        # detectors see "Anita_Sharma_010565" as one undelimited token and
+        # recognise only part of it. 14 of 16 residual-leak quarantines on
+        # the practice data were exactly this field. A provenance path holds
+        # no clinical information, so replacing it outright costs nothing --
+        # and a path whose components are all innocuous is left untouched.
+        if isinstance(value, str) and looks_like_path(value) and path_carries_pii(value, detect_in_text):
+            return REDACTED_PATH
+        leaf_feats = feats_by_path.get(path, [])
+        if not leaf_feats:
+            return value
+        text = "" if value is None else str(value)
+        target = f"@metadata.{path}"
+        whole = len(leaf_feats) == 1 and leaf_feats[0].char_start == 0 and leaf_feats[0].char_end == len(text)
+        if whole and leaf_feats[0].role in _METADATA_FORCE_SUPPRESS_ROLES:
+            return None
+        if whole and leaf_feats[0].role != FieldRole.OTHER:
+            result = decide_feature_action(leaf_feats[0], policy, _METADATA_PLACEHOLDER_CTX, release_key, target)
+            return None if result.omit_field else result.replacement_text
+        if not isinstance(value, str):
+            return None
+        resolved = resolve_overlaps(leaf_feats)
+        repls: list[tuple[int, int, str]] = []
+        for f in resolved:
+            if f.role in _METADATA_FORCE_SUPPRESS_ROLES:
+                repls.append((f.char_start, f.char_end, ""))
+            else:
+                result = decide_feature_action(f, policy, _METADATA_PLACEHOLDER_CTX, release_key, target)
+                repls.append((f.char_start, f.char_end, result.replacement_text))
+        return apply_span_replacements(value, repls)
+
+    def walk(node: Any, path: str) -> Any:
+        if isinstance(node, dict):
+            return {k: walk(v, f"{path}.{k}" if path else k) for k, v in node.items()}
+        if isinstance(node, list):
+            return [walk(item, f"{path}[{i}]") for i, item in enumerate(node)]
+        return transform_scalar(node, path)
+
+    return walk(meta, "")
+
+
 def run_sanitize(
     input_path: Path,
     output_dir: Path,
@@ -150,7 +255,21 @@ def run_sanitize(
     release_id: str,
     master_key: bytes,
     config: AppConfig,
+    *,
+    organizer_contract: bool = False,
 ) -> SanitizeOutcome:
+    """organizer_contract=False (default): identical behavior to every
+    existing caller/test -- NijSetu's own internal release contract
+    (released/file_N.ext, whole-release leak-scan block) is completely
+    unchanged. organizer_contract=True is an additive, opt-in mode used only
+    by the Secret Wards organizer adapter (src/nijsetu/organizer.py): a
+    single residual leak quarantines just the implicated file instead of
+    blocking the entire release (fail-safe at the smallest safe unit, not
+    at the whole-run unit), the claimed patient pseudonym is written into
+    every released record, and a records_index audit trail is returned for
+    records.jsonl. Nothing here weakens the leak scan itself -- it is the
+    same scan, re-run after quarantine to independently confirm the smaller
+    release is actually clean before anything is published."""
     wall_start = time.monotonic()
     ru_start = resource.getrusage(resource.RUSAGE_SELF)
     cpu_start = ru_start.ru_utime + ru_start.ru_stime
@@ -176,6 +295,13 @@ def run_sanitize(
 
     cleanup_stale_staging(output_dir)
     release_key = keys.derive_release_key(master_key, release_id)
+    # Every HMAC-derived value this run mints (patient/identifier tokens,
+    # FHIR resource UUIDs) is tracked so the independent leak scan can tell
+    # a genuine residual digit pattern apart from a pure coincidence inside
+    # our own synthetic output (a v4 UUID's 12-hex-digit last group has a
+    # real, non-negligible chance of being all decimal digits, which then
+    # reads exactly like a bare Aadhaar number to a context-free regex).
+    minted_tokens: set[str] = set()
 
     discovered = discover_files(input_path)
     pre_hashes: dict[str, str] = {}
@@ -192,6 +318,21 @@ def run_sanitize(
     records, _truncated_buckets = analyze_ingest_result(ingest_result, config)
     records_by_key = {r.record_key: r for r in records}
     record_features = {r.record_key: r.features for r in records}
+    # Every PII literal actually detected inside each input file, bucketed
+    # by file_no: (a) scan_literals below checks each staged output file
+    # only against its OWN file's literals, so a name shared between a
+    # retained doctor in one file and a different patient's redacted name
+    # in another file is never a false leak; (b) organizer_contract reuses
+    # the same bucketing to decide whether a file's relative path/filename
+    # is safe to preserve (a name/MRN detected in the content is exactly as
+    # disqualifying when it reappears in the filename, e.g.
+    # "Discharge_Summary_Reena_Nishad_JJH-0076928.txt").
+    file_literals: dict[int, list[str]] = defaultdict(list)
+    for r in records:
+        file_no = int(r.record_key.split(":", 1)[0])
+        for f in r.features:
+            if f.role in PRIVATE_LEAK_ROLES and f.original_text.strip():
+                file_literals[file_no].append(f.original_text.strip())
 
     # A hospital-local identifier (UHID, MRN, billing id, ...) carries no
     # Feature.issuer of its own -- only a national scheme (Aadhaar/ABHA) or
@@ -210,10 +351,36 @@ def run_sanitize(
                     fallback_issuer = resolve_fallback_issuer(r.features, (r.file_path,), config.source_system_map)
                 f.issuer = fallback_issuer
 
+    # Day-first/month-first resolution for numeric dates. Done here, once,
+    # over the WHOLE corpus and before any consumer (patient age banding,
+    # risk, the transformers, the clinical-invariant snapshot) reads a date:
+    # a single value like "03/02/2026" is ambiguous in isolation, but the
+    # column/file it sits in almost always contains a value that pins the
+    # order. Resolving per value instead of per scope is what previously
+    # suppressed 31% of all slash/dash dates outright -- destroying
+    # length-of-stay intervals and holding otherwise-publishable records.
+    # See phase2.date_convention for the evidence cascade.
+    date_convention_reasons: Counter[str] = Counter()
+    convention_resolver = DateConventionResolver()
+    date_features: list[tuple[int, str, object]] = []
+    for r in records:
+        file_no = int(r.record_key.split(":", 1)[0])
+        for f in r.features:
+            if f.role != FieldRole.DATE or not f.original_text.strip():
+                continue
+            field_path = f.source.path or ""
+            convention_resolver.observe(file_no, field_path, f.original_text)
+            date_features.append((file_no, field_path, f))
+    for file_no, field_path, f in date_features:
+        decision = convention_resolver.resolve(file_no, field_path)
+        f.date_convention = decision.convention
+        date_convention_reasons[decision.reason] += 1
+
     clusters: dict[str, list[str]] = defaultdict(list)
     for r in records:
         clusters[r.cluster_id].append(r.record_key)
     patient_contexts = build_patient_contexts(clusters, record_features, release_key, policy)
+    minted_tokens.update(ctx.patient_token for ctx in patient_contexts.values())
 
     token_registry = keys.TokenRegistry()
     for _cid, ctx in patient_contexts.items():
@@ -229,9 +396,12 @@ def run_sanitize(
 
     # Apply the ladder's geography decision to the actual transform.
     # risk_after is independently rebuilt from surviving output values.
+    # "Widened", not necessarily "removed": the ladder now replaces a
+    # patient's finest coarse level with their district rather than dropping
+    # all coarse geography, so the trigger is that the value CHANGED.
     geo_suppress_clusters = {
         cid for cid, s in signatures.items()
-        if s.geography is not None and widened_signatures[cid].geography is None
+        if s.geography is not None and widened_signatures[cid].geography != s.geography
     }
     if geo_suppress_clusters:
         patient_contexts = {
@@ -255,6 +425,13 @@ def run_sanitize(
     released_clusters: set[str] = set()
     released_members: dict[str, list[str]] = defaultdict(list)
     released_features: dict[str, list] = {}
+    # organizer_contract bookkeeping only (both stay empty otherwise): which
+    # released record/document belongs to which file (for the per-file
+    # leak-quarantine rollback) and the locator/cluster each one maps to
+    # (for records.jsonl, resolved to an actual patient_token right before
+    # the final report is assembled).
+    released_record_keys_by_file: dict[int, list[str]] = defaultdict(list)
+    records_index: list[dict] = []
 
     def _record_released_features(record_key: str, features: list) -> None:
         cid = records_by_key[record_key].cluster_id
@@ -306,7 +483,8 @@ def run_sanitize(
                     hold_index.append(_hold_entry(result.hold_reasons, file_no=fr.file_no, fmt=fr.format))
                     continue
 
-                out_rows: list[list[str]] = [result.rows[0]] if result.rows else [header]
+                base_header = result.rows[0] if result.rows else header
+                out_rows: list[list[str]] = [[*base_header, "patient_ref"] if organizer_contract else base_header]
                 kept = 0
                 for doc in docs:
                     rk = f"{fr.file_no}:{doc.record_no}"
@@ -319,6 +497,7 @@ def run_sanitize(
                         continue
                     sanitized_row = result.rows[row_idx]
                     staged_feats = _reparse_csv_row_features(header, sanitized_row)
+                    convention_resolver.stamp(fr.file_no, staged_feats)
                     original = extract_assertions(record_features.get(rk, []))
                     staged = extract_assertions(staged_feats)
                     problems = compare_assertions(original, staged, row_ctx[doc.record_no].date_shift_days)
@@ -326,10 +505,23 @@ def run_sanitize(
                         hold_index.append(_hold_entry(problems, file_no=fr.file_no, record_no=doc.record_no))
                         held_record_count += 1
                         continue
-                    out_rows.append(sanitized_row)
+                    ctx = row_ctx[doc.record_no]
+                    out_rows.append([*sanitized_row, ctx.patient_token] if organizer_contract else sanitized_row)
                     kept += 1
                     released_clusters.add(_cluster_of(rk))
                     _record_released_features(rk, staged_feats)
+                    if organizer_contract:
+                        released_record_keys_by_file[fr.file_no].append(rk)
+                        # out_loc is the locator in the EXPORTED document, which
+                        # differs from `loc` whenever an earlier row was
+                        # suppressed. records.jsonl publishes it as SPEC.md's
+                        # `out` field, and the pseudonym verifier uses it to
+                        # address this record (and only this record) in the
+                        # serialized output. out_rows[0] is the header.
+                        records_index.append({
+                            "file_no": fr.file_no, "loc": f"row:{doc.record_no}",
+                            "out_loc": f"row:{len(out_rows) - 2}", "cluster_id": _cluster_of(rk),
+                        })
                 buf = io.StringIO()
                 csv.writer(buf, delimiter=delimiter, lineterminator="\n").writerows(out_rows)
                 out_path.write_text(buf.getvalue(), encoding="utf-8")
@@ -358,8 +550,23 @@ def run_sanitize(
                     # an unexpected patient name).
                     meta_feats = _reparse_json_value_features(shape.wrapper_meta)
                     if any(f.role in PRIVATE_LEAK_ROLES for f in meta_feats):
-                        hold_index.append(_hold_entry(["JSON_WRAPPER_METADATA_UNSAFE"], file_no=fr.file_no, fmt=fr.format))
-                        continue
+                        file_literals[fr.file_no].extend(
+                            f.original_text.strip() for f in meta_feats
+                            if f.role in PRIVATE_LEAK_ROLES and f.original_text.strip()
+                        )
+                        sanitized_meta = _sanitize_wrapper_metadata(shape.wrapper_meta, policy, release_key)
+                        residual_feats = _reparse_json_value_features(sanitized_meta)
+                        if any(f.role in PRIVATE_LEAK_ROLES for f in residual_feats):
+                            # Could not be made safe by the generic metadata
+                            # sanitizer above -- fail-safe fallback: hold the
+                            # whole file rather than publish a residual leak.
+                            hold_index.append(_hold_entry(["JSON_WRAPPER_METADATA_UNSAFE"], file_no=fr.file_no, fmt=fr.format))
+                            continue
+                        shape = replace(shape, wrapper_meta=sanitized_meta)
+                        all_actions.append(Action(
+                            target=f"file_{fr.file_no}.@metadata", kind="MASK_SPAN",
+                            rule_id="JSON_WRAPPER_METADATA_SANITIZED",
+                        ))
 
                 out_records = []
                 for doc, obj in zip(docs, tree_records):
@@ -375,17 +582,35 @@ def run_sanitize(
                         held_record_count += 1
                         continue
                     staged_feats = _reparse_json_value_features(result.value)
+                    convention_resolver.stamp(fr.file_no, staged_feats)
                     original = extract_assertions(record_features.get(rk, []))
                     problems = compare_assertions(original, extract_assertions(staged_feats), ctx.date_shift_days)
                     if problems:
                         hold_index.append(_hold_entry(problems, file_no=fr.file_no, record_no=doc.record_no))
                         held_record_count += 1
                         continue
+                    if organizer_contract and isinstance(result.value, dict):
+                        result.value["patient_ref"] = ctx.patient_token
                     out_records.append(result.value)
                     all_actions.extend(result.actions)
                     released_record_count += 1
                     released_clusters.add(_cluster_of(rk))
                     _record_released_features(rk, staged_feats)
+                    if organizer_contract:
+                        released_record_keys_by_file[fr.file_no].append(rk)
+                        out_index = len(out_records) - 1
+                        if shape.kind == "WRAPPED":
+                            wrapper_pointer = f"/{_json_pointer_escape(shape.wrapper_key)}"
+                            loc = f"{wrapper_pointer}/{doc.record_no}" if shape.wrapped_was_list else wrapper_pointer
+                            out_loc = f"{wrapper_pointer}/{out_index}" if shape.wrapped_was_list else wrapper_pointer
+                        elif source_is_list:
+                            loc, out_loc = f"/{doc.record_no}", f"/{out_index}"
+                        else:
+                            loc = out_loc = "doc"
+                        records_index.append({
+                            "file_no": fr.file_no, "loc": loc, "out_loc": out_loc,
+                            "cluster_id": _cluster_of(rk),
+                        })
                 if shape.kind == "WRAPPED":
                     if shape.wrapped_was_list:
                         inner: Any = out_records
@@ -413,27 +638,36 @@ def run_sanitize(
                 ctx = patient_contexts[_cluster_of(rk)]
                 result = transform_txt(doc.txt_document.text, record_features.get(rk, []), ctx, policy, release_key, rk)
                 staged_feats = detect_in_text(result.text, SourceCoordinate(0, "", 0, "body"))
+                convention_resolver.stamp(fr.file_no, staged_feats)
                 original = extract_assertions(record_features.get(rk, []))
                 problems = compare_assertions(original, extract_assertions(staged_feats), ctx.date_shift_days)
                 if problems:
                     hold_index.append(_hold_entry(problems, file_no=fr.file_no, record_no=doc.record_no))
                     held_record_count += 1
                     continue
-                out_path.write_text(result.text, encoding="utf-8")
+                final_text = f"Patient: {ctx.patient_token}\n{result.text}" if organizer_contract else result.text
+                out_path.write_text(final_text, encoding="utf-8")
                 all_actions.extend(result.actions)
                 released_file_count += 1
                 released_record_count += 1
                 released_clusters.add(_cluster_of(rk))
                 _record_released_features(rk, staged_feats)
+                if organizer_contract:
+                    released_record_keys_by_file[fr.file_no].append(rk)
+                    records_index.append({
+                        "file_no": fr.file_no, "loc": "doc", "out_loc": "doc",
+                        "cluster_id": _cluster_of(rk),
+                    })
 
             elif fr.format == "fhir":
                 raw = raw_bytes_by_path.get(fr.file_path, b"")
                 tree = parse_fhir_tree(raw, config.limits)
+                minted_tokens.update(keys.resource_uuid(release_key, f"{fr.file_no}:{doc.record_no}") for doc in docs)
                 fhir_resources = [doc.fhir_resource for doc in docs if doc.fhir_resource is not None]
                 parse_result = _FhirParseResultShim(fhir_resources)
                 fhir_doc = sanitize_fhir_document(
                     tree, fr.file_no, parse_result, record_features, records_by_key, patient_contexts, release_key, policy,
-                    held_clusters=frozenset(held_clusters_from_risk),
+                    held_clusters=frozenset(held_clusters_from_risk), organizer_contract=organizer_contract,
                 )
                 all_actions.extend(fhir_doc.actions)
                 for resource_no, reasons in fhir_doc.held.items():
@@ -445,12 +679,28 @@ def run_sanitize(
                 out_path.write_text(_dump_json_preserving_numbers(fhir_doc.tree), encoding="utf-8")
                 released_file_count += 1
                 released_record_count += len(fhir_doc.tree.get("entry", [])) if fhir_doc.tree.get("resourceType") == "Bundle" else 1
+                bundle_clusters: set[str] = set()
                 for resource_no in fhir_doc.released:
                     rk = f"{fr.file_no}:{resource_no}"
                     if rk in records_by_key:
                         released_clusters.add(_cluster_of(rk))
+                        bundle_clusters.add(_cluster_of(rk))
                         staged_fields = _extract_resource(fhir_doc.released_resources[resource_no], resource_no, "", None).fields
                         _record_released_features(rk, staged_fields)
+                        if organizer_contract:
+                            released_record_keys_by_file[fr.file_no].append(rk)
+                if organizer_contract:
+                    # Whole-Bundle locator (matches the organizer's own "doc"
+                    # convention for FHIR): claim a patient only when every
+                    # released resource in this document resolves to the
+                    # SAME patient cluster -- a Bundle touching more than one
+                    # distinct patient must never make a single confident
+                    # whole-document claim (see DATASET.md on FHIR locators).
+                    bundle_patient_cluster = next(iter(bundle_clusters)) if len(bundle_clusters) == 1 else None
+                    records_index.append({
+                        "file_no": fr.file_no, "loc": "doc", "out_loc": "doc",
+                        "cluster_id": bundle_patient_cluster,
+                    })
 
         for df in discovered:
             if df.rel_path not in pre_hashes:
@@ -462,12 +712,50 @@ def run_sanitize(
             if post_hash != pre_hashes[df.rel_path]:
                 raise SanitizeInputError("SOURCE_INPUT_CHANGED_DURING_PROCESSING")
 
-        literals = []
-        for r in records:
-            for f in r.features:
-                if f.role in PRIVATE_LEAK_ROLES and f.original_text.strip():
-                    literals.append(f.original_text.strip())
-        leak_findings = scan_literals(staging.public, literals) + scan_generic_residual_patterns(staging.public)
+        minted_tokens.update(a.replacement_ref for a in all_actions if a.replacement_ref)
+        safe_tokens = frozenset(minted_tokens)
+        leak_findings = scan_literals(staging.public, file_literals, safe_tokens) + scan_generic_residual_patterns(staging.public, safe_tokens)
+
+        # organizer_contract: fail-safe at the smallest safe unit. A single
+        # residual leak anywhere in the release must not discard every other
+        # file that *is* clean -- quarantine exactly the implicated file(s)
+        # instead, then independently re-run the SAME two scans over the
+        # smaller release to confirm it is actually clean before trusting
+        # that. A finding that cannot be attributed to one `released/file_N.*`
+        # (should not occur at this point in the pipeline, since report.json/
+        # manifest.json/hold_index.json are not written yet -- but checked
+        # defensively) falls back to the original whole-release block below,
+        # never silently ignored.
+        if organizer_contract and leak_findings:
+            implicated: set[int] = set()
+            unattributed: list[str] = []
+            for finding in leak_findings:
+                m = re.search(r"released/file_(\d+)\.", finding)
+                (implicated.add(int(m.group(1))) if m else unattributed.append(finding))
+            if not unattributed:
+                for file_no in sorted(implicated):
+                    removed = list((staging.public / "released").glob(f"file_{file_no}.*"))
+                    if not removed:
+                        continue
+                    for p in removed:
+                        p.unlink()
+                    hold_index.append(_hold_entry(["RESIDUAL_LEAK_DETECTED"], file_no=file_no, disposition="QUARANTINED"))
+                    released_file_count -= 1
+                    for rk in released_record_keys_by_file.get(file_no, []):
+                        cid = records_by_key[rk].cluster_id
+                        released_record_count -= 1
+                        held_record_count += 1
+                        released_features.pop(rk, None)
+                        if rk in released_members.get(cid, []):
+                            released_members[cid].remove(rk)
+                        if not released_members.get(cid):
+                            released_clusters.discard(cid)
+                            held_clusters.add(cid)
+                    records_index[:] = [r for r in records_index if r["file_no"] != file_no]
+                leak_findings = (
+                    scan_literals(staging.public, file_literals, safe_tokens)
+                    + scan_generic_residual_patterns(staging.public, safe_tokens)
+                )
 
         for entry in hold_index:
             if entry.get("record_no") is not None and entry.get("file_no") is not None:
@@ -500,6 +788,19 @@ def run_sanitize(
                 "files_held_or_unsupported": sum(1 for h in hold_index if "file_no" in h and "record_no" not in h),
                 "records_released": released_record_count,
                 "records_held": held_record_count,
+                # How many records ingest parsed out of EACH input file,
+                # keyed by file_no as a string (JSON object keys are strings).
+                # Published so a caller can account for the records inside a
+                # file that was later quarantined as a whole -- without it,
+                # those records are absent from every total and the record
+                # accounting cannot be reconciled. See organizer.build_output's
+                # `records_quarantined`.
+                "records_per_file": {
+                    str(file_no): count
+                    for file_no, count in sorted(Counter(
+                        doc.file_no for doc in ingest_result.documents
+                    ).items())
+                },
                 "patients_total": len(patient_contexts),
                 # patients_held: NO record of theirs was released (fully
                 # held). patients_released: at least one record was. A
@@ -514,6 +815,10 @@ def run_sanitize(
             "risk_before": {k: v for k, v in risk_before.__dict__.items()},
             "risk_after": {k: v for k, v in risk_after.__dict__.items()},
             "leak_scan": {"findings": leak_findings, "clean": not leak_findings},
+            # Provenance of every day-first/month-first decision, so a reader
+            # can see which dates rest on scope evidence and which on the
+            # declared fallback (aggregate counts only, never a value).
+            "date_conventions": dict(date_convention_reasons),
             "token_collisions": token_registry.collisions,
             "hold_summary": dict(Counter(code for h in hold_index for code in h.get("reason_codes", []))),
             "timing": {
@@ -563,8 +868,23 @@ def run_sanitize(
             report["staged_validation_failures"] = failing
             return SanitizeOutcome("BLOCKED", "STAGED_VALIDATION_FAILED", report, None)
 
+        resolved_records_index = None
+        if organizer_contract:
+            resolved_records_index = [
+                {
+                    "file_no": r["file_no"],
+                    "loc": r["loc"],
+                    "out_loc": r.get("out_loc", r["loc"]),
+                    "patient_token": patient_contexts[r["cluster_id"]].patient_token if r["cluster_id"] else None,
+                }
+                for r in records_index
+            ]
+
         staging.publish()
-        return SanitizeOutcome(status, None, report, output_dir)
+        return SanitizeOutcome(
+            status, None, report, output_dir, records_index=resolved_records_index,
+            file_literals=dict(file_literals) if organizer_contract else None,
+        )
 
     except SanitizeInputError as exc:
         return SanitizeOutcome("BLOCKED", exc.reason_code, {"status": "BLOCKED", "reason_code": exc.reason_code}, None)

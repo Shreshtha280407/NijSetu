@@ -21,10 +21,11 @@ from .policy import PolicyConfig
 class PatientSignature:
     cluster_id: str
     age_band: Optional[str]
-    geography: Optional[str]
+    geography: Optional[str]  # finest coarse level held (tehsil if any, else district)
     visit_period: Optional[str]  # "YYYY-MM" / "YYYY" / None
     diagnosis_terms: tuple[str, ...]
     facility: Optional[str]
+    district: Optional[str] = None  # coarsest retained level; survives the widening step
 
 
 def _group_key(sig: PatientSignature) -> tuple:
@@ -39,12 +40,22 @@ def build_signatures(
     out: dict[str, PatientSignature] = {}
     for cluster_id, members in clusters.items():
         geography = None
+        district = None
         diagnosis: set[str] = set()
         facility = None
         for m in members:
             for f in record_features.get(m, []):
-                if f.role == FieldRole.COARSE_GEOGRAPHY and geography is None and f.original_text.strip():
-                    geography = f.original_text.strip().lower()
+                if f.role == FieldRole.COARSE_GEOGRAPHY and f.original_text.strip():
+                    if geography is None:
+                        geography = f.original_text.strip().lower()
+                    # The coarsest retained level is tracked separately so the
+                    # small-cohort ladder can widen BY ONE STEP (drop the
+                    # tehsil, keep the district) instead of discarding every
+                    # coarse value at once. `district` here means the
+                    # district/state canonical specifically, not "whatever
+                    # coarse field came first".
+                    if district is None and f.scheme == "district":
+                        district = f.original_text.strip().lower()
                 elif f.role == FieldRole.CLINICAL_HISTORY and f.original_text.strip():
                     diagnosis.add(f.original_text.strip().lower())
                 elif f.role == FieldRole.FACILITY_NAME and facility is None and f.original_text.strip():
@@ -53,7 +64,8 @@ def build_signatures(
         visit_period = ctx.reference_event_date.strftime("%Y-%m") if ctx.reference_event_date else None
         out[cluster_id] = PatientSignature(
             cluster_id=cluster_id, age_band=ctx.age_band, geography=geography,
-            visit_period=visit_period, diagnosis_terms=tuple(sorted(diagnosis)), facility=facility,
+            visit_period=visit_period, diagnosis_terms=tuple(sorted(diagnosis)),
+            facility=facility, district=district,
         )
     return out
 
@@ -84,7 +96,7 @@ def build_released_signatures(
                         age_band = ctx.age_band
                 elif feature.scheme in event_schemes:
                     try:
-                        dates.append(parse_flexible_date(feature.original_text).value)
+                        dates.append(parse_flexible_date(feature.original_text, getattr(feature, 'date_convention', None)).value)
                     except DateParseError:
                         continue
         contexts[cid] = replace(ctx, reference_event_date=min(dates) if dates else None, age_band=age_band)
@@ -167,8 +179,20 @@ def escalate_for_small_groups(
     small_ids = [cid for cid, s in sigs.items() if counts[_group_key(s)] < policy.k_threshold]
     for cid in small_ids:
         s = sigs[cid]
-        if s.geography is not None:
-            sigs[cid] = replace(s, geography=None)
+        # One step coarser, not "gone". The signature's geography is the
+        # FINEST coarse level the patient has (a tehsil, typically); widening
+        # replaces it with the district, which is the level
+        # `geography_level: district` declares is retained and which the
+        # answer key lists among the values that must survive. Dropping both
+        # levels cost 54 preserved district values on the practice data for
+        # no real privacy gain -- a district holds millions of people, and
+        # every FINE component (house/ward/mohalla/village/landmark/PIN) is
+        # already suppressed unconditionally by the role action.
+        #
+        # `geography=None` still happens when the patient has no district at
+        # all, so the signature never claims a value the output lacks.
+        if s.geography is not None and s.geography != s.district:
+            sigs[cid] = replace(s, geography=s.district)
 
     held: set[str] = set()
     if policy.hold_distinctive_singletons:

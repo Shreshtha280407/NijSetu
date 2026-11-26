@@ -211,6 +211,8 @@ def rewrite_resource(
     patient_ctx: PatientContext,
     policy: PolicyConfig,
     release_key: bytes,
+    *,
+    organizer_contract: bool = False,
 ) -> FhirEntryResult:
     rtype = raw.get("resourceType", "")
     identity = identity_by_resource_no[resource_no]
@@ -239,6 +241,16 @@ def rewrite_resource(
         token = keys.identifier_token(release_key, scheme, str(ident["value"]))
         new_idents.append({"system": "urn:nijsetu:tokenized-identifier", "value": token})
         actions.append(Action(target=f"{target_base}.identifier", kind="TOKENIZE", rule_id="IDENTIFIER_TOKENIZED", replacement_ref=token))
+    if organizer_contract and rtype == "Patient":
+        # The organizer's records.jsonl consistency check re-opens the
+        # published Bundle and requires the claimed pseudonym to actually
+        # appear inside the record it is claimed for -- for a FHIR document
+        # that record is the whole Bundle (locator "doc"), so the token is
+        # carried on the Patient resource's own identifier array, never on
+        # unrelated resources, and never in place of (always alongside) a
+        # genuine tokenized local identifier.
+        new_idents.append({"system": "urn:nijsetu:patient-pseudonym", "value": patient_ctx.patient_token})
+        actions.append(Action(target=f"{target_base}.identifier", kind="TOKENIZE", rule_id="FHIR_PATIENT_PSEUDONYM_EMBEDDED"))
     if new_idents:
         out["identifier"] = new_idents
 
@@ -384,6 +396,8 @@ def sanitize_fhir_document(
     release_key: bytes,
     policy: PolicyConfig,
     held_clusters: frozenset[str] = frozenset(),
+    *,
+    organizer_contract: bool = False,
 ) -> FhirDocumentResult:
     """held_clusters: cluster_ids the risk escalation ladder already decided
     to hold BEFORE any transform runs (sanitize.py's CSV/JSON/TXT branches
@@ -439,7 +453,10 @@ def sanitize_fhir_document(
             feats = record_features.get(record_key, [])
             res = phase1_by_no.get(resource_no)
             refs = res.references if res else []
-            result = rewrite_resource(resource_no, raw, record_key, refs, identity_by_resource_no, feats, ctx, policy, release_key)
+            result = rewrite_resource(
+                resource_no, raw, record_key, refs, identity_by_resource_no, feats, ctx, policy, release_key,
+                organizer_contract=organizer_contract,
+            )
             actions.extend(result.actions)
             if result.sanitized is None:
                 held[resource_no] = result.hold_reasons

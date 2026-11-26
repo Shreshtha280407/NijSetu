@@ -31,6 +31,12 @@ _YEAR_RE = re.compile(r"^\d{4}$")
 _NUMERIC_FORMATS = ("%d-%m-%Y", "%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d")
 _TEXT_FORMATS = ("%d %b %Y", "%d %B %Y")
 
+# Which of the above encode a day-first vs a month-first reading. "%Y/%m/%d"
+# is year-first and unambiguous by shape, so it belongs to neither and is
+# never filtered out by a convention.
+_DAY_FIRST_FORMATS = frozenset({"%d-%m-%Y", "%d/%m/%Y"})
+_MONTH_FIRST_FORMATS = frozenset({"%m/%d/%Y"})
+
 
 class DateParseError(Exception):
     def __init__(self, reason_code: str):
@@ -46,7 +52,15 @@ class ParsedDate:
     time_suffix: str | None = None  # raw "Txx:xx:xx+05:30" tail, datetime only
 
 
-def parse_flexible_date(text: str) -> ParsedDate:
+def parse_flexible_date(text: str, convention: str | None = None) -> ParsedDate:
+    """`convention` is "DMY"/"MDY" (see phase2.date_convention) and applies
+    ONLY to the genuinely ambiguous numeric-triple family: it selects between
+    two otherwise-equally-valid readings of the same value. It never makes an
+    unparseable value parse, never overrides an unambiguous shape (ISO,
+    year-month, bare year, textual month, or a value with a component > 12
+    that already pins the order), and `None` keeps the strict behaviour of
+    raising DATE_AMBIGUOUS.
+    """
     text = text.strip()
     if not text:
         raise DateParseError("DATE_EMPTY")
@@ -90,7 +104,19 @@ def parse_flexible_date(text: str) -> ParsedDate:
         raise DateParseError("DATE_UNPARSEABLE")
     distinct = {d for _, d in matches}
     if len(distinct) > 1:
-        raise DateParseError("DATE_AMBIGUOUS")
+        # Genuinely two readings. A scope-level convention (if the caller
+        # resolved one) picks between them; without one this stays an
+        # explicit refusal rather than a silent guess.
+        preferred = _DAY_FIRST_FORMATS if convention == "DMY" else _MONTH_FIRST_FORMATS if convention == "MDY" else None
+        if preferred is None:
+            raise DateParseError("DATE_AMBIGUOUS")
+        narrowed = [(fmt, d) for fmt, d in matches if fmt in preferred]
+        if len({d for _, d in narrowed}) != 1:
+            # The convention does not actually disambiguate THIS value
+            # (e.g. a day-first convention against a value only month-first
+            # can parse): refuse rather than pick arbitrarily.
+            raise DateParseError("DATE_AMBIGUOUS")
+        matches = narrowed
     fmt, d = matches[0]
     return ParsedDate(d, fmt, "day")
 
