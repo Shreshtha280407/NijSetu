@@ -1,0 +1,21 @@
+{
+  "resourceType": "Patient",
+  "id": "pat-hb",
+  "identifier": [
+    {
+      "system": "https://hospitalB.example/uhid",
+      "value": "UH500"
+    }
+  ],
+  "name": [
+    {
+      "text": "Geeta Rao"
+    }
+  ],
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "9000000001"
+    }
+  ]
+}

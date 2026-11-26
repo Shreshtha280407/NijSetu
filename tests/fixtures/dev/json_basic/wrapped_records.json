@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "source": "hospitalA"
+  },
+  "records": [
+    {
+      "patientName": "Sunil Mehta",
+      "uhid": "UH0701"
+    }
+  ]
+}

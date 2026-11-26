@@ -1,0 +1,3 @@
+Discharge Summary
+Patient: Md. Arif, UHID UHA001
+Stay: admitted 12 Oct 1990, discharged 17 Oct 1990.

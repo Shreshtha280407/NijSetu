@@ -1,0 +1,8 @@
+{
+  "patientName": "Arvind Nair",
+  "uhid": "00123",
+  "labs": {
+    "hba1c": 8.2,
+    "bigId": 123456789012345678901234567890
+  }
+}

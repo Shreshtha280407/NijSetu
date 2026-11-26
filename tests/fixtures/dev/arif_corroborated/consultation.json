@@ -1,0 +1,8 @@
+{
+  "patientName": "मोहम्मद आरिफ़",
+  "uhid": "UHA001",
+  "visit": {
+    "complaint": "fever",
+    "doctor": "Dr. Singh"
+  }
+}

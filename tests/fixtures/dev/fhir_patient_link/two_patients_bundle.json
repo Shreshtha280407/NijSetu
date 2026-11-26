@@ -1,0 +1,61 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pA",
+        "identifier": [
+          {
+            "system": "https://hospX.example/uhid",
+            "value": "UHPA1"
+          }
+        ],
+        "name": [
+          {
+            "text": "Deepika Rao"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "eA",
+        "subject": {
+          "reference": "Patient/pA"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pB",
+        "identifier": [
+          {
+            "system": "https://hospX.example/uhid",
+            "value": "UHPB1"
+          }
+        ],
+        "name": [
+          {
+            "text": "Rohan Verma"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "oB",
+        "subject": {
+          "reference": "Patient/pB"
+        },
+        "code": {
+          "text": "HbA1c"
+        }
+      }
+    }
+  ]
+}

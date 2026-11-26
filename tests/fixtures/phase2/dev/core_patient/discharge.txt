@@ -1,0 +1,5 @@
+Patient: Mohammad Arif, UHID AR001
+Admission Date: 2024-10-12
+Discharge Date: 2024-10-17
+BP 140/90 on admission. HbA1c 8.2%. Ramipril 5 mg twice daily.
+K/C/O diabetes mellitus.

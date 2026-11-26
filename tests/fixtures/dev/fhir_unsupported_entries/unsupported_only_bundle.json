@@ -1,0 +1,13 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Organization",
+        "id": "org1",
+        "name": "Some Clinic"
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Practitioner",
+        "id": "doc1",
+        "name": [
+          {
+            "text": "Dr. Alka Rao"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obsNoSubj",
+        "performer": {
+          "reference": "Practitioner/doc1"
+        },
+        "code": {
+          "text": "Blood Pressure"
+        }
+      }
+    }
+  ]
+}

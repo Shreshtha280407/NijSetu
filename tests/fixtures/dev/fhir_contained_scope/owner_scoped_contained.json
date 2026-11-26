@@ -1,0 +1,76 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "encOwnerA",
+        "contained": [
+          {
+            "resourceType": "Patient",
+            "id": "elsewhere"
+          }
+        ],
+        "subject": {
+          "reference": "#elsewhere"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obsOther",
+        "subject": {
+          "reference": "#elsewhere"
+        },
+        "code": {
+          "text": "Blood Pressure"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "encDupContained",
+        "contained": [
+          {
+            "resourceType": "Patient",
+            "id": "dup"
+          },
+          {
+            "resourceType": "Patient",
+            "id": "dup"
+          }
+        ],
+        "subject": {
+          "reference": "#dup"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "encMissing",
+        "subject": {
+          "reference": "#missing"
+        }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "encOwnerB",
+        "contained": [
+          {
+            "resourceType": "Patient",
+            "id": "elsewhere"
+          }
+        ],
+        "subject": {
+          "reference": "#elsewhere"
+        }
+      }
+    }
+  ]
+}

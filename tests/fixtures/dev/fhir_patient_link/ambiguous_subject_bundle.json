@@ -1,0 +1,57 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pX",
+        "identifier": [
+          {
+            "system": "https://hospX.example/uhid",
+            "value": "UHX1"
+          }
+        ],
+        "name": [
+          {
+            "text": "Farah Khan"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pY",
+        "identifier": [
+          {
+            "system": "https://hospX.example/uhid",
+            "value": "UHY1"
+          }
+        ],
+        "name": [
+          {
+            "text": "Rakesh Dutt"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "obsAmbig",
+        "subject": [
+          {
+            "reference": "Patient/pX"
+          },
+          {
+            "reference": "Patient/pY"
+          }
+        ],
+        "code": {
+          "text": "Blood Pressure"
+        }
+      }
+    }
+  ]
+}

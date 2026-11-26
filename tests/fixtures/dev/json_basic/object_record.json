@@ -1,0 +1,8 @@
+{
+  "patientName": "Neha Joshi",
+  "uhid": "UH0501",
+  "address": {
+    "ward": "Ward 9",
+    "district": "Kanpur"
+  }
+}

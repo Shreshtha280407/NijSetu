@@ -1,0 +1,49 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "dup",
+        "identifier": [
+          {
+            "system": "https://hospX.example/uhid",
+            "value": "UHDUP1"
+          }
+        ],
+        "name": [
+          {
+            "text": "Alpha One"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "dup",
+        "identifier": [
+          {
+            "system": "https://hospX.example/uhid",
+            "value": "UHDUP2"
+          }
+        ],
+        "name": [
+          {
+            "text": "Beta Two"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "encDup",
+        "subject": {
+          "reference": "Patient/dup"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "p1",
+        "identifier": [
+          {
+            "system": "https://hospX.example/uhid",
+            "value": "UHMX1"
+          }
+        ],
+        "name": [
+          {
+            "text": "Sana Iqbal"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Organization",
+        "id": "org1",
+        "name": "Some Clinic"
+      }
+    },
+    {
+      "resource": {
+        "id": "noType1"
+      }
+    },
+    "not-a-dict-entry",
+    {}
+  ]
+}

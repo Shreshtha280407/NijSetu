@@ -1,0 +1,35 @@
+{
+  "resourceType": "Patient",
+  "id": "pat-1",
+  "identifier": [
+    {
+      "system": "https://hospitalA.example/uhid",
+      "value": "UH0901"
+    }
+  ],
+  "name": [
+    {
+      "text": "Farhan Qureshi",
+      "family": "Qureshi",
+      "given": [
+        "Farhan"
+      ]
+    }
+  ],
+  "birthDate": "1990-05-12",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "9090909090"
+    }
+  ],
+  "address": [
+    {
+      "line": [
+        "House 12, Civil Lines"
+      ],
+      "district": "Kanpur",
+      "postalCode": "208001"
+    }
+  ]
+}
