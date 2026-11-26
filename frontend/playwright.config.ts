@@ -16,9 +16,17 @@ export default defineConfig({
     trace: 'retain-on-failure',
     video: 'on',
   },
-  webServer: {
-    command: 'npm run dev -- --port 5173 --strictPort',
-    url: 'http://127.0.0.1:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: '.venv/bin/python -m nijsetu.web',
+      cwd: '..',
+      url: 'http://127.0.0.1:8765/api/health',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'npm run dev -- --port 5173 --strictPort',
+      url: 'http://127.0.0.1:5173',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });

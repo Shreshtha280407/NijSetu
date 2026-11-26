@@ -3750,3 +3750,70 @@ thead th {
     font-size: 14px;
   }
 }
+
+/* Dataset source controls and engine reason codes must fit narrow screens. */
+.source-system-card {
+  margin: 20px 0;
+}
+.source-system-card label {
+  display: grid;
+  gap: 10px;
+  font-weight: 600;
+}
+.source-system-card input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border, #d8c8c0);
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.source-system-card p {
+  margin-top: 12px;
+}
+.evidence-tags span,
+.evidence-explanation,
+.evidence-line p,
+.evidence-source strong,
+.release-check strong,
+.release-check p,
+.run-id {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 680px) {
+  .workspace-header {
+    gap: 10px;
+  }
+  .breadcrumb {
+    min-width: 0;
+  }
+  .breadcrumb > .icon-button,
+  .header-right {
+    flex-shrink: 0;
+  }
+  .breadcrumb strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 680px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stat-card {
+    min-width: 0;
+  }
+  .stat-detail,
+  .stat-value {
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 360px) {
+  .stat-accent .stat-value {
+    font-size: 22px;
+  }
+}

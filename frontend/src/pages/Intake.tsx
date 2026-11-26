@@ -22,19 +22,18 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge, InfoNote, PageHeading, Stat } from '../components/UI';
-import { formatSize, policies } from '../data/demo';
+import { formatSize, type BatchFile } from '../data/demo';
 import { useWorkspace } from '../Workspace';
-
-const runStages = [
-  'Reading the synthetic files',
-  'Finding names and identifiers',
-  'Linking corroborated records',
-  'Preparing the privacy preview',
-];
 
 export default function Intake() {
   const {
     files,
+    policies,
+    sourceSystem,
+    setSourceSystem,
+    run,
+    stage,
+    error,
     sample,
     policy,
     setPolicy,
@@ -50,10 +49,15 @@ export default function Intake() {
   const [dragging, setDragging] = useState(false);
   const [filter, setFilter] = useState('all');
   const input = useRef<HTMLInputElement>(null);
-  const ready = files.filter((file) => file.supported).length;
+  const folderInput = useRef<HTMLInputElement>(null);
+  const fileResult = (file: BatchFile) =>
+    run?.result?.files.find((item) => item.file_path === file.name);
+  const isReady = (file: BatchFile) =>
+    fileResult(file) ? fileResult(file)!.disposition === 'PROCESSED' : file.supported;
+  const ready = files.filter(isReady).length;
   const quarantined = files.length - ready;
   const visibleFiles = files.filter(
-    (file) => filter === 'all' || (filter === 'ready' ? file.supported : !file.supported),
+    (file) => filter === 'all' || (filter === 'ready' ? isReady(file) : !isReady(file)),
   );
 
   return (
@@ -79,7 +83,9 @@ export default function Intake() {
           icon={FileCheck2}
           label="Ready to process"
           value={ready.toString().padStart(2, '0')}
-          detail="Supported file formats"
+          detail={
+            analyzed ? 'Engine parsing results' : 'Extensions checked; contents checked on run'
+          }
         />
         <Stat
           icon={TriangleAlert}
@@ -118,6 +124,26 @@ export default function Intake() {
               event.target.value = '';
             }}
           />
+          <input
+            ref={folderInput}
+            type="file"
+            multiple
+            webkitdirectory=""
+            className="visually-hidden"
+            aria-label="Choose dataset folder"
+            disabled={running}
+            onChange={(event) => {
+              if (event.target.files?.length) addFiles(event.target.files);
+              event.target.value = '';
+            }}
+          />
+          <button
+            className="button button-small"
+            onClick={() => folderInput.current?.click()}
+            disabled={running}
+          >
+            Choose dataset folder
+          </button>
           <button
             className={`dropzone inset ${dragging ? 'dropzone-active' : ''}`}
             disabled={running}
@@ -139,8 +165,8 @@ export default function Intake() {
             <strong>
               Drop your files here, or <span>browse files</span>
             </strong>
-            <span>CSV, TSV, JSON, TXT · FHIR R4 as JSON</span>
-            <small>Files stay on this device. Synthetic data only.</small>
+            <span>CSV, TSV, JSON, TXT, ZIP · FHIR R4 as JSON</span>
+            <small>Processed by your local Python engine · up to 32 MiB / 500 files</small>
           </button>
           <div className="file-toolbar">
             <div className="segmented" aria-label="Filter batch files">
@@ -167,6 +193,8 @@ export default function Intake() {
           </div>
           <div className="file-list" aria-live="polite">
             {visibleFiles.map((file) => {
+              const outcome = fileResult(file);
+              const supported = isReady(file);
               const Icon = ['CSV', 'TSV'].includes(file.format)
                 ? FileSpreadsheet
                 : file.format === 'JSON'
@@ -175,22 +203,25 @@ export default function Intake() {
                     ? FileText
                     : File;
               return (
-                <div
-                  className={`file-row ${file.supported ? '' : 'file-quarantined'}`}
-                  key={file.id}
-                >
-                  <span className={`file-icon ${file.supported ? '' : 'file-icon-warning'}`}>
+                <div className={`file-row ${supported ? '' : 'file-quarantined'}`} key={file.id}>
+                  <span className={`file-icon ${supported ? '' : 'file-icon-warning'}`}>
                     <Icon size={21} />
                   </span>
                   <div className="file-name">
                     <strong>{file.name}</strong>
                     <span>
                       {file.format} · {formatSize(file.size)}
-                      {!file.supported && ' · Unsupported format'}
+                      {outcome?.reason_codes.length
+                        ? ` · ${outcome.reason_codes.join(', ')}`
+                        : !file.supported
+                          ? ' · Unsupported format'
+                          : ''}
                     </span>
                   </div>
-                  <Badge tone={file.supported ? 'success' : 'warning'}>
-                    {file.supported ? (
+                  <Badge tone={supported ? 'success' : 'warning'}>
+                    {outcome ? (
+                      outcome.disposition
+                    ) : supported ? (
                       <>
                         <Check size={12} /> Ready
                       </>
@@ -308,10 +339,34 @@ export default function Intake() {
       </div>
       {!sample && files.length > 0 && (
         <InfoNote>
-          Intake preview only. To explore the built-in demo, load the complete sample batch.
-          Processing a custom queue requires a connection to the Python engine; file contents are
-          not read by this preview.
+          Files are uploaded only when you run the batch. ZIP contents are expanded and checked by
+          the engine. Unsupported and malformed inputs receive explicit holds or quarantine reasons.
         </InfoNote>
+      )}
+      {!sample && (
+        <section className="raised policy-card source-system-card">
+          <label>
+            Source system / hospital (optional)
+            <input
+              aria-label="Source system"
+              value={sourceSystem}
+              maxLength={120}
+              disabled={running}
+              placeholder="e.g. HOSPITAL_A"
+              onChange={(event) => setSourceSystem(event.target.value)}
+            />
+          </label>
+          <p>
+            Set this only when all files share the same identifier issuer. Leave blank for
+            independent sources; explicit FHIR issuers still apply.
+          </p>
+        </section>
+      )}
+      {error && (
+        <div className="review-decision" role="alert">
+          <TriangleAlert size={24} />
+          <p>{error}</p>
+        </div>
       )}
       <section className={`run-panel ${analyzed ? 'run-panel-done' : ''}`} aria-live="polite">
         <div className="run-panel-copy">
@@ -327,16 +382,16 @@ export default function Intake() {
           <div>
             <strong>
               {running
-                ? runStages[Math.min(Math.floor(progress / 26), 3)]
+                ? stage
                 : analyzed
-                  ? 'Sample run complete. Ready for a closer look.'
+                  ? 'Engine run complete. Ready for a closer look.'
                   : 'A safer release starts with a thoughtful check.'}
             </strong>
             <p>
               {running
-                ? `Simulating the workflow · ${progress}% complete`
+                ? `Python engine · ${progress}% complete`
                 : analyzed
-                  ? '3 records linked · 1 held for review · 1 unsupported file quarantined'
+                  ? `${run?.result?.analysis.counts.documents_processed ?? 0} records analyzed · ${run?.result?.report.counts?.records_released ?? 0} released · ${run?.result?.report.status ?? 'BLOCKED'}`
                   : 'We’ll find identities, link the evidence, and prepare your review.'}
             </p>
           </div>
@@ -348,11 +403,11 @@ export default function Intake() {
         ) : (
           <button
             className="button button-primary"
-            disabled={!sample || running || !files.length}
+            disabled={running || !files.length}
             onClick={startRun}
           >
             {running ? <LoaderCircle size={17} className="spin" /> : <Play size={17} />}{' '}
-            {running ? 'Running sample…' : 'Run sample batch'}
+            {running ? 'Processing batch…' : sample ? 'Run sample batch' : 'Run uploaded batch'}
           </button>
         )}
         {running && (
@@ -364,7 +419,7 @@ export default function Intake() {
       {analyzed && (
         <div className="rerun">
           <button className="text-button muted" onClick={startRun}>
-            <RotateCcw size={14} /> Run the sample again
+            <RotateCcw size={14} /> Run the batch again
           </button>
         </div>
       )}

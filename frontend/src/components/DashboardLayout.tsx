@@ -27,7 +27,7 @@ const links = [
 export default function DashboardLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
-  const { notice, setNotice, analyzed, reviewed, running } = useWorkspace();
+  const { notice, setNotice, analyzed, reviewed, running, sample, connected } = useWorkspace();
   const title = [
     ...links,
     { to: '/dashboard/policy', label: 'Privacy policy' },
@@ -102,7 +102,7 @@ export default function DashboardLayout() {
           <div className="sidebar-note inset">
             <LockKeyhole size={21} />
             <strong>Your data stays here.</strong>
-            <p>This frontend preview makes no cloud requests.</p>
+            <p>Processing stays in the local Python engine.</p>
             <Link to="/#trust">
               About trust & privacy <BookOpen size={14} />
             </Link>
@@ -111,7 +111,7 @@ export default function DashboardLayout() {
             <Home size={17} /> Back to home
           </Link>
           <div className="sidebar-foot">
-            NijSetu <span>v0.1 · Frontend preview</span>
+            NijSetu <span>v0.2 · Engine workspace</span>
           </div>
         </div>
       </aside>
@@ -134,7 +134,7 @@ export default function DashboardLayout() {
               <LockKeyhole size={14} /> On this device
             </span>
             <Badge tone="success" dot>
-              Local preview
+              {connected ? 'Engine connected' : 'Engine offline'}
             </Badge>
           </div>
         </header>
@@ -142,13 +142,12 @@ export default function DashboardLayout() {
           <div className="demo-banner">
             <ShieldCheck size={18} />
             <p>
-              <strong>Synthetic demo workspace</strong>
+              <strong>{sample ? 'Demo dataset' : 'Uploaded dataset'}</strong>
               <span>
-                Explore the complete flow with illustrative records. Python engine connection comes
-                next.
+                Run detection, patient linkage, sanitization and validation with the Python engine.
               </span>
             </p>
-            <Badge tone="indigo">Demo mode</Badge>
+            <Badge tone="indigo">{sample ? 'Demo data' : 'Your data'}</Badge>
           </div>
           <div className="workflow-progress" aria-label="Workflow progress">
             {links.map((item, index) => {
@@ -173,7 +172,7 @@ export default function DashboardLayout() {
             <span>
               <ShieldCheck size={14} /> Designed for privacy. Built for clarity.
             </span>
-            <span>Project RAKSHA · Synthetic data only</span>
+            <span>Project RAKSHA · Local processing</span>
           </footer>
         </main>
       </div>

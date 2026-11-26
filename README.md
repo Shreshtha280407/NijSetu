@@ -38,17 +38,19 @@ NijSetu separates **identity evidence**, **privacy transformations** and **clini
 | Inspect what was excluded | Explicit reason codes, quarantine accounting and reports tied to published output. |
 | Work without cloud services | A CPU-only Python engine with no mandatory runtime dependencies or external model calls. |
 
-**Current implementation:** the Python CLI and organizer adapter run the actual pipeline. The React dashboard is an interactive **synthetic demonstration**, with illustrative results and downloads. It does not call the Python engine. Local file selection previews filenames, sizes and extensions; it does not read or upload file contents.
+**Current implementation:** the React dashboard is connected to the Python engine through a local HTTP API. Judges can run the bundled demo or upload CSV, TSV, JSON/FHIR, TXT, folders or ZIP datasets. Review, policy selection, release checks, history and ZIP downloads use real engine results. Start everything with `bash scripts/start-dashboard.sh` and open **http://127.0.0.1:8765**.
 
 ## See it in action
 
 <a href="docs/assets/readme/product-tour.mp4"><picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/assets/readme/release.webp"><img src="docs/assets/readme/product-tour.gif" alt="Actual Chrome recording of the synthetic demo: inspect intake, run the sample, review the uncertain name-only record, confirm its exclusion, and download the labeled preview." width="100%"></picture></a>
 
-<p align="center"><sub>Real browser capture of the existing app, using synthetic fixtures. The GIF is accelerated; the 34-second MP4 plays at the recorded speed. Displayed checks are illustrative, not engine results.</sub></p>
+<p align="center"><sub>Historical browser capture of the earlier frontend demo, using synthetic fixtures. The GIF is accelerated; the 34-second MP4 plays at the recorded speed. This recording predates the engine integration; the current dashboard runs actual engine checks.</sub></p>
 
 <p align="center"><b><a href="docs/assets/readme/product-tour.mp4">▶ Watch the full recording</a></b> · <a href="docs/assets/readme/capture-manifest.json">Capture record</a> · <a href="docs/assets/readme/hero-poster.webp">Static cover</a></p>
 
 ### Inside the workspace
+
+These screenshots show the earlier demo interface. The current integrated workflow and start command are documented below.
 
 <img src="docs/assets/readme/workspace-gallery.webp" alt="Four real dashboard screenshots: synthetic batch intake, a held record with insufficient name evidence, release checks after explicit exclusion, and the balanced/strict policy comparison." width="100%">
 
@@ -105,7 +107,7 @@ Patient-specific date offsets preserve recognized within-patient intervals when 
 
 ## Architecture
 
-<img src="docs/assets/readme/architecture.svg" alt="Implemented Python CLI and organizer adapter feed the local ingest, detection, identity and sanitization engine. Internal and organizer exports have separate contracts. The React synthetic dashboard has no current engine connection; a future loopback API adapter is shown separately." width="100%">
+<img src="docs/assets/readme/architecture.svg" alt="Implemented Python CLI and organizer adapter feed the local ingest, detection, identity and sanitization engine. Internal and organizer exports have separate contracts. Historical architecture illustration; the React dashboard now connects through the implemented nijsetu.web loopback API." width="100%">
 
 | Layer | Technology | Responsibility |
 |---|---|---|
@@ -115,7 +117,7 @@ Patient-specific date offsets preserve recognized within-patient intervals when 
 | Privacy | HMAC-SHA256, policy presets, patient contexts | Consistent pseudonyms, date offsets, age bands, suppression and risk escalation. |
 | Release checks | Private staging, reparsing, manifest digests | Residual scans, clinical invariants, FHIR references and atomic internal publication. |
 | Organizer integration | `main.py`, `nijsetu.organizer` | `raksha-report/1`, safe output paths and exact-record claim verification. |
-| Demonstration UI | React 19, TypeScript, Vite, local fonts | Intake, review, policy and release interactions using synthetic fixtures. |
+| Integrated dashboard | React 19, TypeScript, Vite, local fonts, Python HTTP API | Uploaded/demo datasets, engine evidence, policy presets, validated releases and session history. |
 
 RapidFuzz is an optional similarity accelerator. The core package has a pure-Python fallback and no mandatory runtime dependencies. Python installation and frontend dependency setup may need internet access; the installed runtime does not.
 
@@ -160,19 +162,17 @@ sequenceDiagram
 
 ## Run it locally
 
-### Explore the dashboard
+### Explore the integrated dashboard
 
-Use **Node.js 22.12+ and npm**. From the repository root:
+Use **Python 3.10+, Node.js 22.12+ and npm**. From the repository root:
 
 ```bash
-cd frontend
-npm ci
-npm run dev
+bash scripts/start-dashboard.sh
 ```
 
-Open **[127.0.0.1:5173](http://127.0.0.1:5173)**. Choose **Launch dashboard → Run sample batch → Review patient links**. Inspect the held record, acknowledge its exclusion, then open **View release checks → Download synthetic preview**.
+Open **[127.0.0.1:8765](http://127.0.0.1:8765)**. Choose **Launch dashboard**, then run the bundled demo or upload your own files, dataset folder or ZIP. Select a policy, run the batch, review actual patient links and exclusions, confirm review, and **Download validated release**. The ZIP contains sanitized files, release report, hold index and manifest. Downloads require successful engine validation and operator review.
 
-The download is explicitly labeled demo data. To process files through the real engine, use the Python commands below. [Frontend setup and routes](frontend/README.md)
+Uploads support CSV, TSV, JSON/FHIR and TXT, up to **32 MiB expanded / 500 files**. Unsupported or malformed inputs receive engine reason codes. A source-system field lets judges explicitly scope files from the same hospital. Both demo and upload flows use the same processing pipeline. [Development setup, data lifecycle, API and tests](frontend/README.md)
 
 ### Run the Python engine
 
@@ -353,7 +353,7 @@ src/nijsetu/
 ├── gate/              Executable Phase 1 and Phase 2 acceptance checks
 ├── organizer.py       Secret Wards contract adapter
 └── record_locator.py  Exact-record pseudonym claim verification
-frontend/              React synthetic workspace, local fonts and browser tests
+frontend/              Integrated React workspace, local fonts and browser tests
 tests/                 Python regressions and synthetic fixtures
 scripts/               Fixture generation, evaluation and README media tooling
 docs/                  Experiment ledger and captured README assets

@@ -1,11 +1,11 @@
 import { Check, Layers, LockKeyhole, Settings2, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge, InfoNote, PageHeading } from '../components/UI';
-import { policies, type PolicyName } from '../data/demo';
+import { type PolicyName } from '../data/demo';
 import { useWorkspace } from '../Workspace';
 
 export default function Policy() {
-  const { policy, setPolicy, running } = useWorkspace();
+  const { policy, policies, setPolicy, running } = useWorkspace();
   const rows: {
     label: string;
     key: 'age' | 'dates' | 'geography' | 'cohort' | 'providers' | 'facilities';
@@ -75,7 +75,7 @@ export default function Policy() {
         <div className="panel-heading">
           <div>
             <h2>The details behind the protection</h2>
-            <p>Presets mirror the existing Python policy configuration.</p>
+            <p>Presets are returned by the Python engine.</p>
           </div>
           <ShieldCheck size={23} />
         </div>
@@ -128,8 +128,7 @@ export default function Policy() {
         </section>
       </div>
       <InfoNote>
-        Changes apply to the next sample run and reset any existing review. The production engine
-        connection will apply the selected preset to real pipeline requests.
+        Changes apply to the next engine run and reset the current results and review.
       </InfoNote>
       <div className="page-bottom-action">
         <Link className="button button-primary" to="/dashboard/intake">

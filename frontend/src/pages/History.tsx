@@ -1,17 +1,17 @@
 import { Activity, Download, FlaskConical, History as HistoryIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge, EmptyState, InfoNote, PageHeading } from '../components/UI';
-import { downloadJson, policies } from '../data/demo';
+import { downloadJson } from '../data/demo';
 import { useWorkspace } from '../Workspace';
 
 export default function History() {
-  const { history } = useWorkspace();
+  const { history, policies } = useWorkspace();
   return (
     <>
       <PageHeading
         eyebrow="Every step, accounted for"
         title="A record of careful work."
-        description="Your sample runs, their policies, and the decisions made along the way."
+        description="Your engine runs, their policies, and the decisions made along the way."
         action={
           <Link to="/dashboard/intake" className="button button-small">
             <FlaskConical size={17} /> Open batch intake
@@ -21,10 +21,10 @@ export default function History() {
       {!history.length ? (
         <EmptyState
           title="Your first run is a good place to start."
-          description="Run the built-in synthetic batch to create your first activity record. Completed sample runs will appear here for this session."
+          description="Run a demo or uploaded dataset to create your first activity record. Completed runs will appear here for this session."
           action={
             <Link to="/dashboard/intake" className="button button-primary">
-              <Activity size={17} /> Start a sample run
+              <Activity size={17} /> Start a run
             </Link>
           }
         />
@@ -32,7 +32,7 @@ export default function History() {
         <section className="raised history-panel">
           <div className="panel-heading">
             <div>
-              <h2>Sample run history</h2>
+              <h2>Engine run history</h2>
               <p>
                 {history.length} {history.length === 1 ? 'run' : 'runs'} in this browser session
               </p>
@@ -55,7 +55,9 @@ export default function History() {
                   <tr key={run.id}>
                     <th scope="row">
                       <span className="run-id">{run.id}</span>
-                      <span className="table-secondary">Synthetic sample · 5 files</span>
+                      <span className="table-secondary">
+                        {run.demo ? 'Demo dataset' : 'Uploaded dataset'} · {run.file_count} files
+                      </span>
                     </th>
                     <td>
                       {new Date(run.date).toLocaleDateString(undefined, {
@@ -71,8 +73,14 @@ export default function History() {
                     </td>
                     <td>{policies[run.policy].label}</td>
                     <td>
-                      <Badge tone={run.reviewed ? 'success' : 'warning'}>
-                        {run.reviewed ? 'Review complete' : 'Review pending'}
+                      <Badge
+                        tone={run.result?.release_ready && run.reviewed ? 'success' : 'warning'}
+                      >
+                        {!run.result?.release_ready
+                          ? 'Publication blocked'
+                          : run.reviewed
+                            ? 'Review complete'
+                            : 'Review pending'}
                       </Badge>
                     </td>
                     <td>
@@ -82,11 +90,10 @@ export default function History() {
                         onClick={() =>
                           downloadJson(`nijsetu-${run.id.toLowerCase()}.json`, {
                             ...run,
-                            demo: true,
-                            scope: 'Frontend simulation only. No engine processing or validation.',
-                            records_linked: 3,
-                            records_held: 1,
-                            files_quarantined: 1,
+                            result: undefined,
+                            report: run.result?.report,
+                            analysis: run.result?.analysis,
+                            checks: run.result?.checks,
                           })
                         }
                       >

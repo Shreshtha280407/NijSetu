@@ -30,7 +30,7 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-nijsetu = ["gazetteer/data/*.json", "gazetteer/data/*.md", "gazetteer/data/*.txt"]
+nijsetu = ["gazetteer/data/*.json", "gazetteer/data/*.md", "gazetteer/data/*.txt", "demo_data/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -253,7 +253,7 @@ export default function Landing() {
               See how it works
             </a>
           </div>
-          <p className="hero-note">No account needed. Runs on this device with synthetic data.</p>
+          <p className="hero-note">No account needed. Use demo data or upload your own dataset.</p>
           <LiveDemo />
         </section>
         <section id="how" className="landing-section">

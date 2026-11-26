@@ -12,40 +12,40 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge, EmptyState, InfoNote, PageHeading, Stat } from '../components/UI';
-import { sampleRecords } from '../data/demo';
 import { useWorkspace } from '../Workspace';
 
 export default function Review() {
-  const { analyzed, reviewed, confirmReview } = useWorkspace();
+  const { analyzed, reviewed, confirmReview, run } = useWorkspace();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState('registration');
-  const [acknowledged, setAcknowledged] = useState(false);
-  const record = sampleRecords.find((item) => item.id === selected)!;
-  const visible = sampleRecords.filter(
+  const [selected, setSelected] = useState('');
+  const [acknowledgedRun, setAcknowledgedRun] = useState('');
+  const [saving, setSaving] = useState(false);
+  const result = run?.result;
+  const records = result?.records ?? [];
+  const linked = records.filter((record) => record.status === 'ACCEPTED').length;
+  const held = records.filter((record) => record.status === 'HELD').length;
+  const groups = result?.report.counts?.patients_total ?? 0;
+  const visible = records.filter(
     (item) =>
-      (filter === 'all' || (filter === 'linked' ? item.linked : !item.linked)) &&
-      `${item.name} ${item.file} ${item.tag}`.toLowerCase().includes(search.toLowerCase()),
+      (filter === 'all' ||
+        (filter === 'linked' ? item.status === 'ACCEPTED' : item.status === 'HELD')) &&
+      `${item.name} ${item.file} ${item.reasons.join(' ')}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
   );
-
+  const record = records.find((item) => item.id === selected) ?? visible[0] ?? records[0];
   return (
     <>
       <PageHeading
         eyebrow="Follow the evidence"
         title="One person. A clearer picture."
-        description="Understand every connection, and give uncertain records the care they need."
+        description="Inspect actual engine decisions, patient groups and held records."
         action={
           analyzed ? (
             <Badge tone={reviewed ? 'success' : 'warning'}>
-              {reviewed ? (
-                <>
-                  <CheckCheck size={14} /> Review complete
-                </>
-              ) : (
-                <>
-                  <TriangleAlert size={14} /> 1 decision needed
-                </>
-              )}
+              {reviewed ? <CheckCheck size={14} /> : <TriangleAlert size={14} />}
+              {reviewed ? 'Review complete' : 'Review required'}
             </Badge>
           ) : undefined
         }
@@ -53,7 +53,7 @@ export default function Review() {
       {!analyzed ? (
         <EmptyState
           title="Every good link starts with a batch."
-          description="Run the synthetic batch from intake to see the patient links, their evidence, and the record held for review."
+          description="Run a demo or uploaded dataset from intake to see the engine’s patient links and holds."
           action={
             <Link className="button button-primary" to="/dashboard/intake">
               Go to batch intake
@@ -66,26 +66,26 @@ export default function Review() {
             <Stat
               icon={Users}
               label="Patient groups"
-              value="01"
-              detail="One consistent pseudonym"
+              value={String(groups)}
+              detail="Patient contexts used for sanitization"
             />
             <Stat
               icon={Link2}
               label="Records linked"
-              value="03"
-              detail="Corroborated across sources"
+              value={String(linked)}
+              detail="Corroborated by the engine"
             />
             <Stat
               icon={TriangleAlert}
-              label="Held for review"
-              value="01"
-              detail={reviewed ? 'Excluded from the preview' : 'Name-only match · no anchor'}
+              label="Identity holds"
+              value={String(held)}
+              detail="Unmerged; may be sanitized independently"
             />
             <Stat
               icon={ShieldCheck}
-              label="Clinical values"
-              value="Kept"
-              detail="Illustrative sample comparison"
+              label="Records released"
+              value={String(result?.report.counts?.records_released ?? 0)}
+              detail={result?.report.status ?? 'BLOCKED'}
               accent
             />
           </div>
@@ -94,21 +94,20 @@ export default function Review() {
               <div className="panel-heading">
                 <div>
                   <h2>The patient story</h2>
-                  <p>Four records. Every connection explained.</p>
+                  <p>{records.length} parsed records. Every decision from the engine.</p>
                 </div>
-                <Badge tone="indigo">Patient NS-07</Badge>
               </div>
               <div className="review-toolbar">
                 <div className="segmented" aria-label="Filter records">
                   {[
                     ['all', 'All records'],
-                    ['linked', 'Linked (3)'],
-                    ['held', 'Held (1)'],
+                    ['linked', `Linked (${linked})`],
+                    ['held', `Held (${held})`],
                   ].map(([value, label]) => (
                     <button
+                      key={value}
                       className={filter === value ? 'selected' : ''}
                       aria-pressed={filter === value}
-                      key={value}
                       onClick={() => setFilter(value)}
                     >
                       {label}
@@ -139,33 +138,31 @@ export default function Review() {
                   <button
                     key={item.id}
                     onClick={() => setSelected(item.id)}
-                    className={`review-record ${selected === item.id ? 'review-record-selected' : ''}`}
-                    aria-pressed={selected === item.id}
+                    className={`review-record ${record?.id === item.id ? 'review-record-selected' : ''}`}
+                    aria-pressed={record?.id === item.id}
                   >
-                    <span className={`record-avatar ${item.linked ? '' : 'record-avatar-held'}`}>
-                      {item.linked ? <FileText size={21} /> : <TriangleAlert size={21} />}
+                    <span
+                      className={`record-avatar ${item.status === 'HELD' ? 'record-avatar-held' : ''}`}
+                    >
+                      <FileText size={21} />
                     </span>
                     <span className="review-record-copy">
-                      <strong lang={item.id === 'consultation' ? 'hi' : undefined}>
-                        {item.name}
-                      </strong>
+                      <strong>{item.name}</strong>
                       <span>{item.file}</span>
-                      <small>{item.type}</small>
+                      <small>
+                        {item.type} · record {item.id}
+                      </small>
                     </span>
-                    <Badge tone={item.linked ? 'success' : 'warning'}>
-                      {item.linked ? (
-                        <>
-                          <Check size={12} /> Linked
-                        </>
-                      ) : reviewed ? (
-                        'Excluded'
-                      ) : (
-                        'Held'
-                      )}
+                    <Badge tone={item.status === 'HELD' ? 'warning' : 'success'}>
+                      {item.status === 'ACCEPTED'
+                        ? 'Linked'
+                        : item.status === 'HELD'
+                          ? 'Held'
+                          : 'Singleton'}
                     </Badge>
                   </button>
                 ))}
-                {visible.length === 0 && (
+                {!visible.length && (
                   <div className="file-empty">
                     <Search size={28} />
                     <strong>No matching records</strong>
@@ -182,9 +179,6 @@ export default function Review() {
                   </div>
                 )}
               </div>
-              <div className="record-panel-footer">
-                <Link2 size={15} /> Select a record to see the reasoning behind it.
-              </div>
             </section>
             <aside className="evidence-panel raised">
               <div className="panel-heading">
@@ -193,90 +187,121 @@ export default function Review() {
                   <h2>Evidence, made visible.</h2>
                 </div>
               </div>
-              <div className={`evidence-verdict ${record.linked ? '' : 'evidence-verdict-held'}`}>
-                {record.linked ? <Link2 size={23} /> : <TriangleAlert size={23} />}
-                <div>
-                  <strong>
-                    {record.linked ? 'A supported connection' : 'A name is not enough'}
-                  </strong>
-                  <span>
-                    {record.linked
-                      ? 'Linked to Patient NS-07'
-                      : 'No merge · held outside the patient group'}
-                  </span>
-                </div>
-              </div>
-              <div className="evidence-source">
-                <span>Selected source</span>
-                <strong>{record.file}</strong>
-              </div>
-              <div className="evidence-tags">
-                <span>{record.tag}</span>
-                {record.id === 'consultation' && <span>DEVANAGARI → LATIN</span>}
-              </div>
-              <p className="evidence-explanation">
-                {record.evidence}.{' '}
-                {record.linked
-                  ? 'The sample illustrates corroborated linkage, rather than a name-only match.'
-                  : 'Without an independent identifier, this record cannot safely join the patient story.'}
-              </p>
-              <div className="evidence-line">
-                <span className="evidence-node" />
-                <div>
-                  <strong>
-                    {record.linked
-                      ? 'Identity evidence agrees'
-                      : 'Corroborating identifier missing'}
-                  </strong>
-                  <p>
-                    {record.linked
-                      ? 'A scoped reference supports the name alias.'
-                      : 'No shared scoped UHID or other independent anchor.'}
+              {record ? (
+                <>
+                  <div
+                    className={`evidence-verdict ${record.status === 'HELD' ? 'evidence-verdict-held' : ''}`}
+                  >
+                    <Link2 size={23} />
+                    <div>
+                      <strong>
+                        {record.status === 'ACCEPTED'
+                          ? 'A supported connection'
+                          : record.status === 'HELD'
+                            ? 'Insufficient or conflicting evidence'
+                            : 'Independent patient record'}
+                      </strong>
+                      <span>
+                        {record.status === 'HELD'
+                          ? 'Not merged with other patient records'
+                          : record.cluster
+                            ? `Patient group ${record.cluster}`
+                            : 'Outside resolved patient groups'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="evidence-source">
+                    <span>Selected source</span>
+                    <strong>{record.file}</strong>
+                  </div>
+                  <div className="evidence-tags">
+                    {record.reasons.map((reason) => (
+                      <span key={reason}>{reason}</span>
+                    ))}
+                  </div>
+                  <p className="evidence-explanation">
+                    {record.reasons.length
+                      ? record.reasons.join(' · ')
+                      : 'No cross-record link was accepted. This record is processed independently if the sanitization checks allow it.'}
                   </p>
-                </div>
-              </div>
-              <div className="evidence-line">
-                <span className="evidence-node" />
-                <div>
-                  <strong>
-                    {record.linked ? 'One stable patient token' : 'Conservative by design'}
-                  </strong>
-                  <p>
-                    {record.linked
-                      ? 'The same pseudonym follows all three linked sources.'
-                      : 'An uncertain link stays out of the release preview.'}
-                  </p>
-                </div>
-              </div>
+                  {record.features.map((feature, index) => (
+                    <div className="evidence-line" key={index}>
+                      <span className="evidence-node" />
+                      <div>
+                        <strong>{feature.role.replaceAll('_', ' ')}</strong>
+                        <p>
+                          {feature.tier} · {feature.rules.join(', ')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p>No records could be parsed. Inspect file-level reasons below.</p>
+              )}
               <InfoNote>
-                Illustrative evidence from the built-in sample. Engine confidence scores are not
-                simulated.
+                Private source evidence is shown for local review. The downloaded release contains
+                sanitized output and aggregate reports.
               </InfoNote>
             </aside>
           </div>
+          <section className="raised checks-panel">
+            <div className="panel-heading">
+              <div>
+                <h2>File accounting and exclusions</h2>
+                <p>Parsing dispositions and sanitization holds are separate engine decisions.</p>
+              </div>
+            </div>
+            {result?.files.map((file) => (
+              <div className="release-check" key={file.file_path}>
+                <FileText size={20} />
+                <div>
+                  <strong>{file.file_path}</strong>
+                  <p>
+                    {file.record_count ?? 'Unknown'} records ·{' '}
+                    {file.reason_codes.join(', ') || 'Parsed successfully'}
+                  </p>
+                </div>
+                <Badge tone={file.disposition === 'PROCESSED' ? 'success' : 'warning'}>
+                  {file.disposition}
+                </Badge>
+              </div>
+            ))}
+            {result?.ingest_holds.map((hold, i) => (
+              <p key={i}>
+                {hold.file_path}: {hold.reason_codes.join(', ')}
+              </p>
+            ))}
+            {Object.entries(result?.report.hold_summary ?? {}).map(([reason, count]) => (
+              <p key={reason}>
+                <strong>{reason}</strong> · {count}
+              </p>
+            ))}
+            {result?.report.reason_codes?.map((reason) => (
+              <p key={reason} role="alert">
+                {reason}
+              </p>
+            ))}
+          </section>
           <section className={`review-decision ${reviewed ? 'decision-complete' : ''}`}>
             <span className="decision-icon">
               {reviewed ? <ShieldCheck size={27} /> : <TriangleAlert size={27} />}
             </span>
             <div className="decision-copy">
-              <h2>
-                {reviewed
-                  ? 'A careful decision. A safer preview.'
-                  : 'One record needs a little more care.'}
-              </h2>
+              <h2>{reviewed ? 'Review recorded.' : 'Review the batch before release.'}</h2>
               <p>
-                {reviewed
-                  ? 'The name-only OPD note is excluded. The three corroborated records remain linked.'
-                  : '“Arif” in opd_note.txt has no corroborating identifier. Keep it out of this release.'}
+                Identity holds are not merged; the engine may sanitize them independently. Release
+                holds and quarantined files are excluded. Acknowledging this review does not
+                override a blocked release.
               </p>
               {!reviewed && (
                 <label className="acknowledgement">
                   <input
                     type="checkbox"
-                    checked={acknowledged}
-                    onChange={(event) => setAcknowledged(event.target.checked)}
+                    checked={acknowledgedRun === run?.id}
+                    onChange={(event) => setAcknowledgedRun(event.target.checked ? run!.id : '')}
                   />
-                  I’ve reviewed the evidence. Exclude the name-only record.
+                  I’ve reviewed the records and all exclusions.
                 </label>
               )}
             </div>
@@ -287,10 +312,17 @@ export default function Review() {
             ) : (
               <button
                 className="button button-primary"
-                onClick={confirmReview}
-                disabled={!acknowledged}
+                disabled={acknowledgedRun !== run?.id || saving}
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await confirmReview();
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
               >
-                Confirm exclusion <Check size={17} />
+                Confirm review <Check size={17} />
               </button>
             )}
           </section>

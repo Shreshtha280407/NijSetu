@@ -28,40 +28,34 @@ test('full synthetic intake, review, release and download flow', async ({ page }
   await expect(page.getByText('scan_0042.pdf', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'All files (5)', exact: true }).click();
   await page.getByRole('button', { name: 'Run sample batch', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Running sample…', exact: true })).toBeDisabled();
   await page.getByRole('link', { name: 'Review patient links', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'One person. A clearer picture.' })).toBeVisible();
   await page.getByRole('link', { name: 'Release checks' }).first().click();
-  await expect(page.getByRole('button', { name: 'Download synthetic preview' })).toBeDisabled();
-  await page.getByRole('link', { name: 'Review the held record' }).click();
+  await expect(page.getByRole('button', { name: 'Download validated release' })).toBeDisabled();
+  await page.getByRole('link', { name: 'Review batch results' }).click();
   await page.getByRole('button', { name: 'Held (1)', exact: true }).click();
   await page.getByRole('button', { name: /Arif opd_note.txt/ }).click();
-  await expect(page.getByText('A name is not enough', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Confirm exclusion' })).toBeDisabled();
+  await expect(
+    page.getByText('Insufficient or conflicting evidence', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Confirm review' })).toBeDisabled();
   await page
-    .getByRole('checkbox', { name: 'I’ve reviewed the evidence. Exclude the name-only record.' })
+    .getByRole('checkbox', { name: 'I’ve reviewed the records and all exclusions.' })
     .check();
-  await page.getByRole('button', { name: 'Confirm exclusion' }).click();
+  await page.getByRole('button', { name: 'Confirm review' }).click();
   await page.getByRole('link', { name: 'View release checks' }).click();
   await expect(
     page.getByRole('heading', { name: 'Protected identity. Preserved medicine.' }),
   ).toBeVisible();
   const downloadEvent = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Download synthetic preview' }).click();
+  await page.getByRole('button', { name: 'Download validated release' }).click();
   const download = await downloadEvent;
-  expect(download.suggestedFilename()).toBe('nijsetu-synthetic-preview.json');
+  expect(download.suggestedFilename()).toMatch(/^nijsetu-[a-f0-9]+\.zip$/);
   const stream = await download.createReadStream();
   const chunks = [];
   for await (const chunk of stream!) chunks.push(chunk);
-  const data = JSON.parse(Buffer.concat(chunks).toString());
-  expect(data.demo).toBe(true);
-  expect(data.linked_sources).toHaveLength(3);
-  expect(data.excluded_sources).toContainEqual({
-    file: 'opd_note.txt',
-    reason: 'NAME_ONLY_NO_ANCHOR',
-  });
-  expect(data.clinical_values.blood_pressure).toBe('140/90 mmHg');
-  expect(JSON.stringify(data)).not.toContain('Mohammad');
+  const archive = Buffer.concat(chunks);
+  expect(archive.subarray(0, 2).toString()).toBe('PK');
   await page.getByRole('link', { name: 'Run history' }).click();
   await expect(page.getByRole('cell', { name: 'Review complete' })).toBeVisible();
   await page.screenshot({ path: 'test-results/history-desktop.png', fullPage: true });
@@ -74,7 +68,7 @@ test('changing policy invalidates previous review and updates the sample output'
   await page.getByRole('button', { name: 'Run sample batch', exact: true }).click();
   await page.getByRole('link', { name: 'Review patient links' }).click();
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Confirm exclusion' }).click();
+  await page.getByRole('button', { name: 'Confirm review' }).click();
   await page.getByRole('link', { name: 'Privacy policy', exact: true }).click();
   await page.getByRole('radio', { name: 'Strict policy', exact: true }).check();
   await expect(page.getByText('Strict selected', { exact: true })).toBeVisible();
@@ -87,13 +81,15 @@ test('changing policy invalidates previous review and updates the sample output'
   await expect(page.getByText('±45 days', { exact: true })).toBeVisible();
 });
 
-test('uploaded files stay in preview and cannot produce synthetic results', async ({ page }) => {
+test('uploaded datasets run through the real engine and never show demo records', async ({
+  page,
+}) => {
   await page.goto('/dashboard/intake');
   await page.getByLabel('Choose batch files').setInputFiles([
     {
-      name: 'synthetic-patients.csv',
+      name: 'judge-patients.csv',
       mimeType: 'text/csv',
-      buffer: Buffer.from('name,bp\nSynthetic Person,120/80'),
+      buffer: Buffer.from('Patient Name,UHID,BP\nMeera Sharma,JUDGE001,120/80'),
     },
     {
       name: 'scan.pdf',
@@ -101,16 +97,50 @@ test('uploaded files stay in preview and cannot produce synthetic results', asyn
       buffer: Buffer.from('synthetic unsupported format'),
     },
   ]);
-  await expect(page.getByText('synthetic-patients.csv', { exact: true })).toBeVisible();
+  await expect(page.getByText('judge-patients.csv', { exact: true })).toBeVisible();
   await expect(page.getByText('registration.csv', { exact: true })).not.toBeVisible();
-  await expect(page.getByRole('button', { name: 'Run sample batch', exact: true })).toBeDisabled();
-  await expect(page.getByText(/Intake preview only/)).toBeVisible();
-  await page.getByRole('button', { name: 'Remove scan.pdf', exact: true }).click();
-  await expect(page.getByText('scan.pdf', { exact: true })).not.toBeVisible();
-  await page.getByRole('button', { name: 'Clear batch', exact: true }).click();
-  await expect(page.getByText('A fresh start for your records')).toBeVisible();
-  await page.getByRole('button', { name: 'Load sample batch' }).click();
+  await page.getByRole('button', { name: 'Run uploaded batch', exact: true }).click();
+  await page.getByRole('link', { name: 'Review patient links' }).click();
+  await expect(page.getByRole('button', { name: /Meera Sharma judge-patients.csv/ })).toBeVisible();
+  await expect(page.getByText('Mohammad Arif', { exact: true })).not.toBeVisible();
+  await expect(page.getByText('UNSUPPORTED_EXTENSION', { exact: true }).first()).toBeVisible();
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: 'Confirm review' }).click();
+  await page.getByRole('link', { name: 'View release checks' }).click();
+  await expect(page.getByRole('button', { name: 'Download validated release' })).toBeEnabled();
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download validated release' }).click();
+  expect((await downloadEvent).suggestedFilename()).toMatch(/\.zip$/);
+});
+
+test('malformed dataset shows real parsing reasons and cannot download', async ({ page }) => {
+  await page.goto('/dashboard/intake');
+  await page.getByLabel('Choose batch files').setInputFiles({
+    name: 'broken.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{bad json'),
+  });
+  await page.getByRole('button', { name: 'Run uploaded batch', exact: true }).click();
+  await page.getByRole('link', { name: 'Review patient links' }).click();
+  await expect(page.getByText('JSON_SYNTAX_ERROR', { exact: true }).first()).toBeVisible();
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: 'Confirm review' }).click();
+  await page.getByRole('link', { name: 'View release checks' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Publication blocked by the engine.' }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Download validated release' })).toBeDisabled();
+});
+
+test('backend connection failures show actionable errors and allow retry', async ({ page }) => {
+  await page.route('**/api/**', (route) => route.abort());
+  await page.goto('/dashboard/intake');
+  await page.getByRole('button', { name: 'Run sample batch', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Start python -m nijsetu.web');
   await expect(page.getByRole('button', { name: 'Run sample batch', exact: true })).toBeEnabled();
+  await page.unroute('**/api/**');
+  await page.getByRole('button', { name: 'Run sample batch', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Review patient links' })).toBeVisible();
 });
 
 test('record search and filters have a useful empty state', async ({ page }) => {
@@ -141,9 +171,9 @@ test('mobile menus, all routes and layouts work without page overflow', async ({
   await page.getByRole('button', { name: 'Run sample batch', exact: true }).click();
   await page.getByRole('link', { name: 'Review patient links' }).click();
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Confirm exclusion' }).click();
+  await page.getByRole('button', { name: 'Confirm review' }).click();
   await page.getByRole('link', { name: 'View release checks' }).click();
-  await expect(page.getByRole('button', { name: 'Download synthetic preview' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Download validated release' })).toBeEnabled();
   await page.screenshot({ path: 'test-results/release-mobile.png', fullPage: true });
   for (const route of [
     '/',
@@ -214,7 +244,7 @@ test('populated pages fit small phones, tablets and desktop screens', async ({
   await page.getByRole('button', { name: 'Run sample batch', exact: true }).click();
   await page.getByRole('link', { name: 'Review patient links' }).click();
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Confirm exclusion' }).click();
+  await page.getByRole('button', { name: 'Confirm review' }).click();
   const screens = [320, 375, 768, 1024, 1280, 1440];
   const routes = [
     { label: 'Batch intake', slug: 'intake' },
@@ -255,5 +285,6 @@ test('populated pages fit small phones, tablets and desktop screens', async ({
       )
       .toBeLessThanOrEqual(width);
     await page.getByRole('link', { name: 'Launch dashboard', exact: true }).first().click();
+    await expect(page.getByRole('heading', { name: 'Good data. Safer beginnings.' })).toBeVisible();
   }
 });
