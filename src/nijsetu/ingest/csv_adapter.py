@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 
-from ..schema import Field, FileRecord, FieldRole, SourceCoordinate, ValueType, Disposition
+from ..schema import Field, FileRecord, SourceCoordinate, ValueType, Disposition
 from .encoding import detect_and_decode
 from .header_aliases import normalize_header, resolve_header
 
@@ -75,10 +75,18 @@ def parse_csv(raw: bytes, rel_path: str, file_no: int, declared_format: str) -> 
             continue
         fields: list[Field] = []
         for col_idx, value in enumerate(raw_row):
+            # An ambiguous mapping (two distinct headers claiming the same
+            # canonical field) KEEPS its role. Which column is "the" UHID is
+            # genuinely unknowable and is reported via file_reasons
+            # (AMBIGUOUS_HEADER_MAPPING) for identity resolution to weigh --
+            # but the ROLE is not ambiguous: two columns both naming a patient
+            # identifier are both patient identifiers. Demoting them to OTHER
+            # resolved the ambiguity in the one direction that is never safe,
+            # because OTHER means RETAIN. Measured on the practice data, one
+            # alias that made `sample_id` and `uhid` collide in four lab CSVs
+            # published 230 real MRNs in clear and collapsed those rows into
+            # per-row pseudonym clusters.
             canonical, role = resolved_cols[col_idx]
-            if col_idx in ambiguous_cols:
-                # two distinct headers claim the same canonical role; refuse to guess
-                role = FieldRole.OTHER
             src = SourceCoordinate(
                 file_no=file_no,
                 file_path=rel_path,

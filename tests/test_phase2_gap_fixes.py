@@ -341,7 +341,15 @@ def test_wrapper_preserved_with_metadata_and_decimal_precision(tmp_path):
     assert "8.200" in raw_text  # exact source precision, not reformatted to 8.2
 
 
-def test_wrapper_metadata_with_pii_holds_whole_file(tmp_path):
+def test_wrapper_metadata_with_pii_is_sanitized_in_place_not_whole_file_held(tmp_path):
+    """Supersedes the original Gap-4-era behavior (holding the ENTIRE file
+    whenever wrapper metadata alone carried PII): the Secret Wards organizer
+    spec explicitly penalizes excessive/unnecessary quarantine and "blindly
+    suppressing large portions of the dataset" (SCORING.md's quarantine-
+    handling criteria; the dataset's own "hidden leakage" trap -- PII in
+    export metadata -- is meant to be caught and SANITIZED, not used as an
+    excuse to drop every clinical record in the file). The embedded name
+    must still never survive; the clinical/record content must."""
     inp = tmp_path / "in"
     inp.mkdir()
     (inp / "batch.json").write_text(json.dumps({
@@ -350,6 +358,36 @@ def test_wrapper_metadata_with_pii_holds_whole_file(tmp_path):
         "records": [{"uhid": "A01", "labReading": 8.2}],
     }))
     (inp / "other.csv").write_text("UHID,Patient Name\nB01,Suresh Kumar\n")  # keeps the overall run from being globally blocked
+    out = tmp_path / "out"
+    config = AppConfig(source_system_map=(("batch.json", "HOSP"), ("other.csv", "HOSP")), record_wrapper_key="records")
+    outcome = _sanitize(inp, out, config=config)
+    assert outcome.status in ("RELEASED", "RELEASED_WITH_HOLDS")
+    assert "JSON_WRAPPER_METADATA_UNSAFE" not in outcome.report["hold_summary"]
+    assert "JSON_WRAPPER_METADATA_SANITIZED" in outcome.report["actions"]["by_rule"]
+    released = (out / "released" / "file_0.json")
+    assert released.exists()
+    text = released.read_text(encoding="utf-8")
+    assert "Qzylom" not in text and "Narex" not in text
+    assert "labReading" in text and "8.2" in text  # clinical content survives
+    assert "synthetic-demo" in text  # harmless metadata (batchLabel) survives verbatim
+
+
+def test_wrapper_metadata_pii_that_cannot_be_sanitized_still_falls_back_to_whole_file_hold(tmp_path, monkeypatch):
+    """Fail-safe net: if the generic metadata sanitizer somehow leaves a
+    PRIVATE_LEAK_ROLES feature behind, the file must still be held --
+    exactly the original Gap-4 guarantee, now exercised as the fallback
+    path instead of the default path."""
+    import nijsetu.phase2.sanitize as sanitize_mod
+
+    monkeypatch.setattr(sanitize_mod, "_sanitize_wrapper_metadata", lambda meta, policy, release_key: meta)
+    inp = tmp_path / "in"
+    inp.mkdir()
+    (inp / "batch.json").write_text(json.dumps({
+        "batchLabel": "synthetic-demo",
+        "notes": "Patient: Qzylom Narex",
+        "records": [{"uhid": "A01", "labReading": 8.2}],
+    }))
+    (inp / "other.csv").write_text("UHID,Patient Name\nB01,Suresh Kumar\n")
     out = tmp_path / "out"
     config = AppConfig(source_system_map=(("batch.json", "HOSP"), ("other.csv", "HOSP")), record_wrapper_key="records")
     outcome = _sanitize(inp, out, config=config)

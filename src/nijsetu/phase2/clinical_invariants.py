@@ -45,7 +45,7 @@ def extract_assertions(features: list[Feature]) -> Assertions:
             history.add(f.original_text)
         elif f.role == FieldRole.DATE and f.scheme in _INTERVAL_SCHEMES and f.scheme not in dates:
             try:
-                dates[f.scheme] = parse_flexible_date(f.original_text).value
+                dates[f.scheme] = parse_flexible_date(f.original_text, getattr(f, 'date_convention', None)).value
             except DateParseError:
                 continue
     return Assertions(frozenset(measurements), frozenset(history), tuple(sorted(dates.items())))

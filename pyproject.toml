@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,13 +7,20 @@ name = "nijsetu"
 version = "0.1.0"
 description = "NijSetu Phase 1+2 - offline CPU-only ingest/detect/link and privacy sanitization pipeline for Project RAKSHA"
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
-license = { file = "LICENSE" }
-dependencies = [
-    "rapidfuzz==3.14.6",
-]
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+# No mandatory runtime dependency: the package is pure Python and installs
+# offline on any CPython >= 3.10. RapidFuzz is a *preferred* accelerator for
+# the two name-similarity calls (see nijsetu.translit.similarity, which falls
+# back to a tested-equivalent pure-Python implementation); making it required
+# would tie the submission to one compiled ABI.
+dependencies = []
 
 [project.optional-dependencies]
+speed = [
+    "rapidfuzz==3.14.6",
+]
 dev = [
     "pytest==8.4.2",
     "Faker==40.63.0",

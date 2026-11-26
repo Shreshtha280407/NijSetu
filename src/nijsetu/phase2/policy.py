@@ -21,7 +21,7 @@ SUPPRESS = "SUPPRESS"
 RETAIN = "RETAIN"
 SHIFT_DATE = "SHIFT_DATE"  # date-specific: value changes but is not removed
 
-NATIONAL_SCHEMES = frozenset({"aadhaar", "abha_number", "abha_address"})
+NATIONAL_SCHEMES = frozenset({"aadhaar", "abha_number", "abha_address", "pan"})
 
 
 class PolicyError(Exception):

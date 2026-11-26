@@ -13,7 +13,7 @@ import re
 import unicodedata
 from functools import lru_cache
 
-from rapidfuzz import fuzz
+from .similarity import token_sort_ratio as _token_sort_ratio
 
 from .devanagari import contains_devanagari, transliterate as translit_devanagari
 
@@ -98,4 +98,4 @@ def token_sequence_similarity(name_a: str, name_b: str) -> float:
     tokens_b = " ".join(tokenize_name(name_b))
     if not tokens_a or not tokens_b:
         return 0.0
-    return fuzz.token_sort_ratio(tokens_a, tokens_b)
+    return _token_sort_ratio(tokens_a, tokens_b)

@@ -46,6 +46,28 @@ def load_master_key(key_file: Path) -> bytes:
     return data
 
 
+_ORGANIZER_SECRET_LABEL = b"NIJSETU_ORGANIZER_RAKSHA_SECRET_V1"
+
+
+def derive_master_key_from_secret(secret: str) -> bytes:
+    """Stretches an organizer-supplied `RAKSHA_SECRET` of *any* nonempty
+    length into a full 32-byte master key, via one domain-separated HMAC
+    call (never the raw secret bytes themselves, and never written back out
+    anywhere). This is intentionally a separate code path from
+    `load_master_key` (which reads a local key *file* and enforces
+    `MIN_KEY_BYTES` on it for the existing internal CLI) -- the organizer's
+    secret is an environment value of unknown/variable length (the practice
+    value "practice" is 8 bytes), so it is normalized here instead of being
+    rejected by the file-oriented length floor. Same secret => same master
+    key => same release key => identical tokens/date-shifts; a different
+    secret changes every one of them, since HMAC output is uniformly
+    sensitive to the key.
+    """
+    if not secret:
+        raise KeyError_("RAKSHA_SECRET_EMPTY")
+    return hmac.new(_ORGANIZER_SECRET_LABEL, secret.encode("utf-8"), hashlib.sha256).digest()
+
+
 def derive_release_key(master_key: bytes, release_id: str) -> bytes:
     if not release_id:
         raise KeyError_("RELEASE_ID_EMPTY")

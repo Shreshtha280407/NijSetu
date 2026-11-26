@@ -16,13 +16,27 @@ from pathlib import Path
 
 from ..config import AppConfig
 from ..detect import ALL_NAME_ROUTES, detect_in_text
+from ..detect.names import strip_relation_prefix
+from ..ingest.header_aliases import is_field_label
 from ..identity import resolve_identities
 from ..ingest import run_ingest
 from ..schema import Feature, FieldRole, SourceCoordinate
+from ..translit import consonant_skeleton, tokenize_name
 
 _TRUSTED_ALIAS_ROLES = (
     FieldRole.PATIENT_NAME, FieldRole.RELATIVE_NAME, FieldRole.PROVIDER_NAME, FieldRole.FACILITY_NAME,
 )
+
+# Only PERSON-name roles contribute to the corpus name list below. A facility
+# name must not: "Jeevan Jyoti Charitable Hospital" would make "Jyoti" a
+# corpus-known name and the banner on every one of that hospital's documents
+# would be claimed as a patient.
+_CORPUS_NAME_TOKEN_ROLES = (
+    FieldRole.PATIENT_NAME, FieldRole.RELATIVE_NAME,
+)
+# A one- or two-letter fragment is an initial or a particle, not a name worth
+# matching on its own across a whole corpus.
+_MIN_CORPUS_NAME_TOKEN = 3
 
 
 @dataclass
@@ -55,10 +69,37 @@ def analyze_ingest_result(
     itself and passes the same result in here, instead of re-deriving
     detection/linking logic independently."""
     trusted_aliases: dict[str, FieldRole] = {}
+    # The individual TOKENS of every structurally-declared person name in this
+    # corpus, used as a corpus-derived gazetteer (see
+    # detect.names.detect_free_text_names's CORPUS_NAME_TOKEN routes).
+    #
+    # The bundled gazetteer is a fixed list and cannot contain every Indian
+    # given name -- "Geeta", "Irfan" and "Rukhsana" are all absent from it,
+    # and all three leaked out of Hinglish note bodies ("Geeta ka BP 120/78,
+    # BP abhi bhi high hai") where no label or cue precedes the name. But a
+    # structured column in the SAME corpus already declares those names, so
+    # the corpus itself supplies the list the fixed gazetteer lacks. This is
+    # the standard bootstrap for a de-identifier: learn the name list from the
+    # data's own labelled fields, which is also why it transfers to hidden
+    # datasets whose names this repository has never seen.
+    #
+    # Whole-string aliases (`trusted_aliases`) are STRUCTURED_ANCHOR tier and
+    # win every conflict; these per-token hits are deliberately GAZETTEER tier,
+    # the weakest, so an explicit provider cue still wins -- otherwise a
+    # patient called Ramesh Kumar elsewhere in the corpus would turn every
+    # "Dr. Ramesh Srivastava" into a patient name and destroy the attending
+    # physician the utility score expects to survive.
+    corpus_name_token_set: set[str] = set()
     for doc in ingest_result.documents:
         for f in doc.fields:
             if f.role in _TRUSTED_ALIAS_ROLES and isinstance(f.value, str) and f.value.strip():
                 trusted_aliases[f.value.strip()] = f.role
+            if f.role in _CORPUS_NAME_TOKEN_ROLES and isinstance(f.value, str):
+                for token in tokenize_name(strip_relation_prefix(f.value)):
+                    if len(token) >= _MIN_CORPUS_NAME_TOKEN and not is_field_label(token):
+                        corpus_name_token_set.add(token.lower())
+                        corpus_name_token_set.add(consonant_skeleton(token))
+    corpus_name_tokens = frozenset(t for t in corpus_name_token_set if len(t) >= 2)
 
     record_features: dict[str, list[Feature]] = {}
     record_sources: dict[str, tuple[str, ...]] = {}
@@ -72,11 +113,15 @@ def analyze_ingest_result(
         feats: list[Feature] = []
         if doc.txt_document is not None:
             base = SourceCoordinate(doc.file_no, doc.file_path, doc.record_no, "body", char_start=0)
-            feats.extend(detect_in_text(doc.txt_document.text, base, trusted_aliases, enabled_name_routes=enabled_name_routes))
+            feats.extend(detect_in_text(
+                doc.txt_document.text, base, trusted_aliases, corpus_name_tokens,
+                enabled_name_routes=enabled_name_routes,
+            ))
         else:
             for fld in doc.fields:
                 feats.extend(detect_in_text(
-                    fld.original_text, fld.source, trusted_aliases, structured_role=fld.role,
+                    fld.original_text, fld.source, trusted_aliases, corpus_name_tokens,
+                    structured_role=fld.role,
                     pre_issuer=fld.issuer, pre_scheme=fld.scheme, enabled_name_routes=enabled_name_routes,
                 ))
         record_features[record_key] = feats

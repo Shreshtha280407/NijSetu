@@ -1,0 +1,12 @@
+# NijSetu's dependency list is declared in pyproject.toml (the single source
+# of truth); raksha.toml's setup command installs the package itself
+# (`pip install .`). This file exists for the organizer toolkit's own
+# convention (check_submission.py checks it is present) and must be kept in
+# sync with pyproject.toml by hand.
+#
+# NijSetu has NO mandatory runtime dependency -- it is pure Python and runs
+# offline on any CPython >= 3.10. RapidFuzz below is an optional accelerator
+# for two name-similarity calls; nijsetu.translit.similarity falls back to a
+# tested-equivalent pure-Python implementation when it is not installed, so a
+# failed/skipped install here degrades speed, never correctness.
+rapidfuzz==3.14.6

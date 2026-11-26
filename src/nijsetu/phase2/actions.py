@@ -18,6 +18,11 @@ from .dates import DateParseError, parse_flexible_date, shift_date_text
 from .patient_context import PatientContext
 from .policy import GENERALIZE, MASK_SPAN, PolicyConfig, RETAIN, SHIFT_DATE, SUPPRESS, TOKENIZE
 
+# Coarse-geography schemes that survive the small-cohort widening step: the
+# district (and state) level is the declared retention floor under
+# `geography_level: district`.
+_RETAINED_COARSE_SCHEMES = frozenset({"district"})
+
 _MASK_MARKERS: dict[FieldRole, str] = {
     FieldRole.PATIENT_NAME: "[REDACTED_NAME]",
     FieldRole.RELATIVE_NAME: "[REDACTED_NAME]",
@@ -48,7 +53,9 @@ def decide_feature_action(
     role = feature.role
 
     if role == FieldRole.DATE:
-        if feature.scheme == "dob":
+        # A DOB and a stated age are the same decision: publish the patient's
+        # age BAND, or nothing. Neither is ever shifted like an event date.
+        if feature.scheme in ("dob", "age"):
             if allow_age_band_text and patient_ctx.age_band is not None:
                 action = Action(target=target_label, kind=GENERALIZE, rule_id="DOB_TO_AGE_BAND", confidence_tier=feature.confidence_tier)
                 return ActionResult(action, patient_ctx.age_band)
@@ -56,7 +63,7 @@ def decide_feature_action(
             action = Action(target=target_label, kind=SUPPRESS, rule_id=f"DOB_SUPPRESSED_{reason}")
             return ActionResult(action, "", omit_field=True)
         try:
-            parsed = parse_flexible_date(feature.original_text)
+            parsed = parse_flexible_date(feature.original_text, feature.date_convention)
         except DateParseError as exc:
             action = Action(target=target_label, kind=SUPPRESS, rule_id=f"DATE_HELD_{exc.reason_code}")
             return ActionResult(action, "", omit_field=True)
@@ -65,7 +72,14 @@ def decide_feature_action(
         return ActionResult(action, shifted)
 
     kind = policy.role_action(role, scheme=feature.scheme)
-    if role == FieldRole.COARSE_GEOGRAPHY and patient_ctx.suppress_geography:
+    # The small-cohort ladder widens a patient's geography by ONE step: the
+    # finer coarse levels (tehsil/block/subdivision) go, the district stays.
+    # Suppressing every coarse field instead would discard the district --
+    # the level the active policy declares it retains, and one of the values
+    # the clinical-utility score expects to find -- while buying almost no
+    # privacy, since a district holds millions of people and every FINE
+    # component is already suppressed unconditionally above.
+    if role == FieldRole.COARSE_GEOGRAPHY and patient_ctx.suppress_geography and feature.scheme not in _RETAINED_COARSE_SCHEMES:
         kind = SUPPRESS
 
     if kind == MASK_SPAN:

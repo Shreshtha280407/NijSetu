@@ -22,6 +22,13 @@ class ScoringConfig:
     sparse_but_distinct_floor: float = 48.0
     runner_up_margin: float = 8.0
     household_signal_cap: float = 12.0
+    # Weight of an agreeing distinctive identifier VALUE across two records
+    # whose issuer namespaces are not provably the same (identity.scoring.
+    # _identifier_agreement). Set above corroborated_floor on purpose: a
+    # minted patient number agreeing is better evidence than any name
+    # similarity, so a pair holding one should clear the floor on that
+    # evidence alone rather than needing the name to carry it.
+    identifier_value_signal: float = 35.0
 
 
 @dataclass

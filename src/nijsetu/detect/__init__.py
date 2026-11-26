@@ -11,7 +11,13 @@ from ..ingest.header_aliases import resolve_header
 from ..schema import DetectorEvidence, Feature, FieldRole, SourceCoordinate
 from . import identifiers as ident
 from .clinical import find_care_of_markers, find_clinical_history_markers, find_clinical_measurements
-from .names import ALL_NAME_ROUTES, confidence_tier_for, detect_free_text_names, evidence_for
+from .names import (
+    ALL_NAME_ROUTES,
+    confidence_tier_for,
+    detect_free_text_names,
+    evidence_for,
+    relation_for_relative,
+)
 
 STRUCTURED_ROLES = frozenset({
     FieldRole.PATIENT_NAME, FieldRole.RELATIVE_NAME, FieldRole.PROVIDER_NAME,
@@ -43,7 +49,19 @@ def _default_scheme(base_source: SourceCoordinate) -> str | None:
 # exactly like a PATIENT_IDENTIFIER's scheme, so Phase 2's date-shift policy
 # can distinguish DOB (-> age banding) from every other clinical timeline
 # date (-> a per-patient shift) on the same structured-field mechanism.
-_DATE_KINDS = frozenset({"dob", "admission_date", "discharge_date", "encounter_date", "specimen_date", "report_date"})
+_DATE_KINDS = frozenset({"dob", "age", "admission_date", "discharge_date", "encounter_date", "specimen_date", "report_date"})
+
+
+_GEOGRAPHY_LEVELS = frozenset({"tehsil", "district"})
+
+
+def _geography_level(base_source: SourceCoordinate) -> str | None:
+    """The admin level a coarse-geography column names ("tehsil"/"district"),
+    taken from the same canonical header vocabulary the free-text address
+    detector already uses as its component kind."""
+    last_segment = base_source.path.rsplit(".", 1)[-1].split("[")[0]
+    canonical, role = resolve_header(last_segment)
+    return canonical if role == FieldRole.COARSE_GEOGRAPHY and canonical in _GEOGRAPHY_LEVELS else None
 
 
 def _date_kind(base_source: SourceCoordinate) -> str | None:
@@ -61,6 +79,7 @@ def detect_in_text(
     text: str,
     base_source: SourceCoordinate,
     trusted_aliases: dict[str, FieldRole] | None = None,
+    corpus_name_tokens: frozenset[str] = frozenset(),
     structured_role: FieldRole = FieldRole.OTHER,
     pre_issuer: str | None = None,
     pre_scheme: str | None = None,
@@ -85,6 +104,23 @@ def detect_in_text(
                 issuer = _NATIONAL_ISSUERS.get(scheme) if scheme in _NATIONAL_SCHEMES else None
         elif structured_role == FieldRole.DATE:
             scheme = pre_scheme if pre_scheme is not None else _date_kind(base_source)
+        elif structured_role == FieldRole.COARSE_GEOGRAPHY:
+            # A coarse-geography column carries its ADMIN LEVEL as its scheme
+            # ("tehsil" vs "district"), exactly as the free-text route already
+            # does. Without it a structured District column was
+            # indistinguishable from a Tehsil column downstream, so the
+            # small-cohort widening step could not keep the district -- the
+            # level `geography_level: district` declares it retains -- and
+            # suppressed both, losing 46 district values the clinical-utility
+            # score expects to find.
+            scheme = pre_scheme if pre_scheme is not None else _geography_level(base_source)
+        elif structured_role == FieldRole.RELATIVE_NAME:
+            # A relative column frequently cannot say WHICH relative it holds
+            # -- the Hinglish registration export in the practice data has one
+            # "Pita/Pati ka Naam" (father's/husband's name) column and encodes
+            # the answer in each value as "W/o ..." or "S/o ...". Only the
+            # value knows, so the relation is read from it.
+            scheme = pre_scheme if pre_scheme is not None else relation_for_relative(text, "")
         features.append(Feature(
             source=_mk(base_source, 0, len(text)),
             role=structured_role,
@@ -127,11 +163,21 @@ def detect_in_text(
 
     features.extend(_identifier_features(text, base_source))
 
-    for span in detect_free_text_names(text, trusted_aliases, enabled_name_routes):
+    for span in detect_free_text_names(text, trusted_aliases, enabled_name_routes, corpus_name_tokens):
+        # Which relative a RELATIVE_NAME names is recorded on the feature, so
+        # identity resolution can compare a father's name against a father's
+        # name. Read from the span's own value and the text in front of it
+        # rather than from the rule that matched: a stronger route (a trusted
+        # alias) legitimately claims the same span and would otherwise erase
+        # the relationship evidence that the weaker cue carried.
+        relation = (
+            relation_for_relative(span.text, text[:span.start])
+            if span.role == FieldRole.RELATIVE_NAME else None
+        )
         features.append(Feature(
             source=_mk(base_source, span.start, span.end), role=span.role,
             char_start=span.start, char_end=span.end, original_text=span.text,
-            evidence=[evidence_for(span)],
+            evidence=[evidence_for(span)], scheme=relation,
             confidence_tier=confidence_tier_for(span.tier),
         ))
 
@@ -177,6 +223,13 @@ def _identifier_features(text: str, base_source: SourceCoordinate) -> list[Featu
             evidence=[DetectorEvidence("EMAIL", "FORMAT", "EMAIL_FORMAT")],
             scheme="EMAIL", confidence_tier="HIGH",
         ))
+    for start, end in ident.find_pan(text):
+        out.append(Feature(
+            source=_mk(base_source, start, end), role=FieldRole.PATIENT_IDENTIFIER,
+            char_start=start, char_end=end, original_text=text[start:end],
+            evidence=[DetectorEvidence("PAN", "FORMAT", "PAN_FORMAT")],
+            issuer="INCOME_TAX_DEPT", scheme="pan", confidence_tier="HIGH",
+        ))
     for start, end in ident.find_pin_code(text):
         out.append(Feature(
             source=_mk(base_source, start, end), role=FieldRole.FINE_ADDRESS,
@@ -190,6 +243,65 @@ def _identifier_features(text: str, base_source: SourceCoordinate) -> list[Featu
             char_start=start, char_end=end, original_text=text[start:end],
             evidence=[DetectorEvidence("UHID_LABELLED", "FORMAT", "UHID_LABEL_ANCHOR")],
             scheme="uhid", confidence_tier="HIGH",
+        ))
+    # Insurance/payer identifiers carry their own scheme so they tokenize in
+    # a separate HMAC namespace from a clinical UHID -- a policy number and a
+    # hospital number are different identifier systems and must not be able
+    # to collide onto one token.
+    for start, end in ident.find_labelled_insurance_id(text):
+        out.append(Feature(
+            source=_mk(base_source, start, end), role=FieldRole.PATIENT_IDENTIFIER,
+            char_start=start, char_end=end, original_text=text[start:end],
+            evidence=[DetectorEvidence("INSURANCE_ID_LABELLED", "FORMAT", "INSURANCE_LABEL_ANCHOR")],
+            scheme="insurance_id", confidence_tier="HIGH",
+        ))
+    # Label-free minted identifiers, LAST and only where nothing else already
+    # claimed the span: a labelled hit knows its scheme ("uhid", "insurance_id")
+    # and this route does not, so a label must always win.
+    claimed = [(f.char_start, f.char_end) for f in out]
+    for start, end in ident.find_unlabelled_local_id(text):
+        if any(start < c_end and c_start < end for c_start, c_end in claimed):
+            continue
+        out.append(Feature(
+            source=_mk(base_source, start, end), role=FieldRole.PATIENT_IDENTIFIER,
+            char_start=start, char_end=end, original_text=text[start:end],
+            evidence=[DetectorEvidence("LOCAL_ID_SHAPE", "FORMAT", "UNLABELLED_LOCAL_ID")],
+            # A deliberately NON-anchoring scheme. The shape says "this is a
+            # minted record number"; it does not say whose, or of what. An
+            # episode number and a patient number look identical, and one
+            # patient owns many episodes, so admitting these as identity
+            # anchors would manufacture ID conflicts. They are tokenized for
+            # privacy and ignored for linkage -- see
+            # header_aliases.EVENT_SCOPED_SCHEMES.
+            scheme="local_id", confidence_tier="MEDIUM",
+        ))
+    _ADDRESS_ROLE = {
+        "house": FieldRole.FINE_ADDRESS, "village": FieldRole.FINE_ADDRESS,
+        "locality": FieldRole.FINE_ADDRESS, "landmark": FieldRole.FINE_ADDRESS,
+        # A PIN split off the tail of an address line (see
+        # identifiers._TRAILING_PIN) is a FINE identifier, never coarse
+        # geography: it must be suppressed even when the district it was
+        # glued to is retained.
+        "pin": FieldRole.FINE_ADDRESS,
+        "tehsil": FieldRole.COARSE_GEOGRAPHY, "district": FieldRole.COARSE_GEOGRAPHY,
+    }
+    address_spans = ident.find_labelled_address_components(text)
+    for start, end, kind in address_spans:
+        out.append(Feature(
+            source=_mk(base_source, start, end), role=_ADDRESS_ROLE[kind],
+            char_start=start, char_end=end, original_text=text[start:end],
+            evidence=[DetectorEvidence("ADDRESS_COMPONENT_LABELLED", "FORMAT", f"{kind.upper()}_LABEL_ANCHOR")],
+            scheme=kind, confidence_tier="MEDIUM",
+        ))
+    # Unlabelled components of a line already shown to be an address. Run after
+    # the labelled pass because it needs to know what that pass claimed.
+    covered = [(f_start, f_end) for f_start, f_end, _k in address_spans]
+    for start, end, kind in ident.find_unlabelled_address_segments(text, covered):
+        out.append(Feature(
+            source=_mk(base_source, start, end), role=_ADDRESS_ROLE[kind],
+            char_start=start, char_end=end, original_text=text[start:end],
+            evidence=[DetectorEvidence("ADDRESS_SEGMENT_INFERRED", "FORMAT", "ADDRESS_LINE_POSITION")],
+            scheme=kind, confidence_tier="MEDIUM",
         ))
     for start, end, kind in ident.find_labelled_dates(text):
         out.append(Feature(

@@ -106,6 +106,10 @@ class Feature:
     evidence: list[DetectorEvidence] = field(default_factory=list)
     issuer: Optional[str] = None  # scheme/issuer scope for identifiers
     scheme: Optional[str] = None
+    # Day-first/month-first reading resolved for this value's SCOPE (column /
+    # key / document), filled in by sanitize once the whole corpus has been
+    # observed -- see phase2.date_convention. DATE features only.
+    date_convention: Optional[str] = None
     normalized_forms: dict[str, str] = field(default_factory=dict)
     confidence_tier: str = "LOW"  # LOW / MEDIUM / HIGH
 
@@ -131,6 +135,17 @@ class PatientCandidateFeatures:
     address_tokens: tuple[str, ...]
     scoped_ids: tuple[ScopedIdentifier, ...]
     source_files: tuple[str, ...]
+    # (scheme, series_prefix_or_empty, canonical_value) for every patient-level
+    # identifier this record carries, independent of issuer namespace. Issuer
+    # scoping decides what counts as an AUTHORITATIVE exact match; these decide
+    # what counts as corroborating evidence and as a series contradiction when
+    # the namespace itself is unproven. See identity.canonical_identifier.
+    identifier_keys: tuple[tuple[str, str, str], ...] = ()
+    # relation ("spouse" / "parent") -> that relative's normalized name tokens.
+    # Indian records disambiguate two people with the same full name by the
+    # father's or husband's name, so this is the evidence of last resort when
+    # names, dates and identifiers cannot separate them.
+    relative_names: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
 
 @dataclass
