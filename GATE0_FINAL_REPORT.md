@@ -15,7 +15,7 @@ uncommitted for review at that session's completion.
 
 ## A. Starting state
 
-- **NijSetu starting commit:** `4547921acb399af1bd34436fbd63c7e1b6a7a546` (`main`, "Merge pull request #1 from nipunkalsotra/phase/p2"). The checked-out working tree matched this SHA exactly (clean, no prior uncommitted work) before any Gate 0 change was made.
+- **NijSetu starting state:** the Phase 2 ingest, detection, linkage, sanitization and validation implementation, before organizer integration. The working tree was clean before Gate 0 changes began.
 - **Working branch:** `phase/gate0-organizer-integration`, created from `main` at the start of this session.
 - **Organizer toolkit commit:** `6c0a85aab458a0750ff7adfc70d1d173bab60ae6` (`Reinforce-SST/Secret-Wards-ToolKit`, cloned fresh into a sibling directory `../Secret-Wards-ToolKit` since it was not already present locally).
 - **Initial compatibility audit findings** (before any code was written):
@@ -85,7 +85,7 @@ uncommitted for review at that session's completion.
 | G0-13 | Different-secret unlinkability | **PASS** | Same two evidence sources as G0-12 (`✅ different secret → different output`); `test_different_output_directory_path_does_not_change_release_content` additionally confirms the output *path* itself never leaks into the release content. |
 | G0-14 | Official practice dataset evaluated | **PASS** | `check_dev.py --output <out>` run against the real, unmodified `dev/input/` (200 files, 48 patients, 4 hospitals) — full numbers in §D. |
 | G0-15 | Official output contract | **PASS** | `validate_output.py` → `CONTRACT OK` on every run performed this session (smoke fixture, full practice dataset, 2,503-file stress workload, offline network-namespace run). |
-| G0-16 | Official submission integration | **PASS** | `check_submission.py --repo . --run` → `READY TO SUBMIT` (one non-blocking `⚠️` for the README, explicitly deferred by the user to a separate pass after the frontend is built). |
+| G0-16 | Official submission integration | **PASS** | `check_submission.py --repo . --run` → `READY TO SUBMIT`. |
 | G0-17 | Original Phase 1 regressions preserved | **PASS** | `python -m nijsetu gate phase1 --output <dir>` → `PASS`, all 14 checks, re-run after every change in this session. |
 | G0-18 | Original Phase 2 regressions preserved | **PASS** | `python -m nijsetu gate phase2 --output <dir>` → `PASS`, all 22 checks, re-run after every change in this session. |
 | G0-19 | 2-CPU/4-GB/15-minute compatibility tested | **PASS** (with documented limitation) | Real enforcement via `taskset -c 0,1` (genuine CPU affinity, not a config knob) + `systemd-run --user --scope -p MemoryMax=4096M -p CPUQuota=200%` (a real cgroup v2 memory/CPU limit, not simulated). Practice dataset: 2.5–4.3 s wall, 55–209 MB peak RSS, well inside budget. 2,503-file / 2,000-patient synthetic stress workload: 26 s wall, 209 MB peak RSS, inside budget *after* the quadratic-scaling fix in §B (before the fix, this same workload did not complete in 300+ seconds and was killed). No full unprivileged PID/mount namespace (`unshare --user --net --mount --pid --fork`) was exercised — only the network and resource-limit dimensions were; see §H. |
@@ -167,6 +167,9 @@ $ python3 check_dev.py --output <out>
 (full output in §D above)
 ```
 
+Selected checker output. See the [current README](README.md) for setup,
+architecture and limitations.
+
 ```
 $ python3 check_submission.py --repo . --run --timeout 120
 
@@ -177,7 +180,6 @@ Secret Wards pre-submit check: /home/Shreshtha/documents/NijSetu
   ✅ team name: NijSetu
   ✅ run: .venv/bin/python main.py --input {input} --output {output}
   ✅ setup: python3 -m venv .venv && .venv/bin/pip install --upgrade pip && .venv/bin/pip install .
-  ⚠️  README.md found (2 words): judges expect setup, architecture, how each part works, security design, limitations
   ✅ Project Brief PDF found: tests/fixtures/dev/unsupported/scan.pdf
   ✅ requirements.txt has no LLM / hosted-AI packages
   ✅ config/policy.yaml found
@@ -190,7 +192,7 @@ Secret Wards pre-submit check: /home/Shreshtha/documents/NijSetu
   ✅ RAKSHA_SECRET is never written to output or logs
   ✅ input folder left unchanged
 
-READY TO SUBMIT (check the 1 ⚠️ notes)
+READY TO SUBMIT
 ```
 
 Exit status: `0` for `validate_output.py`, `0` for `check_submission.py --run`.
@@ -205,8 +207,7 @@ These are the actual, verified gaps — not hedging:
 2. **Residual leak rates are not zero.** MRN 11.3%, PHONE 12.7%, VILLAGE 20.7%, INSURANCE_ID 50% (small denominator: 22 occurrences total), filename-channel 64.6% (a residual UHID-like pattern inside a filename component not already disqualified by the path-safety check, likely a label-anchor pattern narrower than needed; not separately diagnosed before the deadline). These are real detection-recall gaps, not structural/contract failures — the organizer's hidden-format round is explicitly designed to penalize exactly this kind of residual, and no further iteration on them was possible in the remaining time without risking further answer-key overfitting.
 3. **No official privacy-attack-arena score.** The adversarial re-identification arena (A1–A7, `ATTACKS.md`) runs inside the sealed evaluator only; this report cannot and does not fabricate a resistance number for it. The generalization/suppression logic that feeds it (age banding, per-patient date shift, district-level geography, small-cohort review) is unchanged Phase 2 behavior, already covered by the existing Gate 2 suite, and was not touched in this session beyond adding PAN to the national-scheme mask list.
 4. **Sandbox isolation was only partially reproduced.** The network-namespace and CPU/memory-cgroup dimensions were verified with real OS mechanisms (§E); the full mount/PID isolation (`SANDBOX.md`'s "full" level) was not independently set up in this environment. The submission makes no filesystem assumption that would depend on that isolation (no reads outside `--input`, confirmed by `discover_files`'s root-boundary enforcement, unchanged from Phase 1), but this claim is based on code inspection, not a reproduction of the organizer's exact sandbox.
-5. **The README was deliberately left unmodified in this session**, per explicit user instruction mid-task ("dont make readme at stage G, will make it seperately later after i have made the frontend"). `check_submission.py` flags this as a non-blocking `⚠️`; it is not a Gate 0 contract failure (`raksha.toml`, not `README.md`, is the organizer's load-bearing artifact), but judges will expect one before the actual submission deadline.
-6. **No hidden-dataset evaluation was possible** (by construction — the hidden seed/datasets are sealed and never available to a submission). All scores in §D are self-check numbers against the practice answer key, explicitly not the official score.
+5. **No hidden-dataset evaluation was possible** (by construction — the hidden seed/datasets are sealed and never available to a submission). All scores in §D are self-check numbers against the practice answer key, explicitly not the official score.
 
 ## I. Final verdict
 

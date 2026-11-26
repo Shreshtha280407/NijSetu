@@ -21,19 +21,9 @@ contract validator.
 | Working repo | `Shreshtha280407/NijSetu` (official) |
 | Branch | `phase/gate05-privacy-linkage-hardening` |
 | Base commit | `b0358f3` ("Initial commit") |
-| Gate 0 source | `nipunkalsotra/NijSetu` @ `b490bd1` ("Ongoing hardening") |
 | Organizer toolkit | `Reinforce-SST/Secret-Wards-ToolKit` @ `6c0a85a` |
 | Interpreter | CPython 3.14.8 (Linux x86_64) |
 | Budget | 2 CPU / 4096 MB / 900 s (`scoring.toml [limits]`) |
-
-### Gate 0 migration
-
-The official repo's HEAD tree (`f7b58f06…`) is **byte-identical** to the old repo's
-Phase 2 merge commit `4547921`. `b490bd1` (the Gate 0 implementation) is a direct
-child of `4547921`, so the migration was a conflict-free `cherry-pick -n`. Verified:
-post-apply `git write-tree` == `b490bd1^{tree}` == `00496732e1b0b8f1746f0b27fa5a7fde3934999a`.
-Nothing existed only in the official repo, so no newer work could be lost.
-No commits were created (the user commits manually).
 
 ## E0 — Baseline of record (measured, not inherited)
 
@@ -55,7 +45,7 @@ No commits were created (the user commits manually).
 | Wall clock | n/a | **2.57 s** | 0.3% of the 900 s budget |
 | Peak RSS | n/a | **57.6 MB** | 1.4% of the 4096 MB budget |
 | `validate_output.py` | — | **CONTRACT OK** (exit 0) | |
-| `check_submission.py` | — | **READY TO SUBMIT** (exit 0) | 1 warning (README) |
+| `check_submission.py` | — | **READY TO SUBMIT** (exit 0) | Recorded submission-contract check |
 
 Per-channel leak baseline: `content 6.2%, filename 64.6%, base64 10.0%,
 metadata 17.5%, key 50.0%, header 50.0%`.

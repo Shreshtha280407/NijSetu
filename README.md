@@ -275,9 +275,31 @@ The adapter uses the balanced preset and a fixed organizer release ID. It verifi
 
 ## Verification and evidence
 
-**Fresh local verification, 27 November 2026:** all **457 Python tests passed**, all **9 browser tests passed**, and the frontend production build passed. The browser rerun includes populated layouts at six widths; the timeout recorded during the earlier README capture did not recur. That capture separately checked the review gate, excluded record, labeled JSON download and policy invalidation, with **zero JavaScript page errors and zero external app requests**. [Verification and media notes](docs/assets/readme/README.md).
+**Fresh local verification, 27 November 2026:** all **472 Python tests passed**, all **9 browser tests passed**, and the frontend production build passed. The browser rerun includes populated layouts at six widths; the timeout recorded during the earlier README capture did not recur. That capture separately checked the review gate, excluded record, labeled JSON download and policy invalidation, with **zero JavaScript page errors and zero external app requests**. [Verification and media notes](docs/assets/readme/README.md).
 
-The latest engine evaluation is recorded in the **[Gate 0.5 report](GATE05_FINAL_REPORT.md)**. Its measurements are synthetic-corpus evidence, not a clinical-deployment guarantee:
+**Re-run against the organizer's own toolkit, same session**, using `Reinforce-SST/Secret-Wards-ToolKit` cloned as a sibling checkout:
+
+| Organizer tool | Result |
+|---|---|
+| `validate_output.py` (practice corpus, 200 files) | **`CONTRACT OK`**, exit 0 |
+| `check_dev.py` (practice corpus, 3,230 scored entities) | **0 leaked (0.0%)**, **0 / 4 canaries found**, **4,223 / 4,339 clinical values kept (97.3%)**, linking **precision 1.00 / recall 0.74 / F0.5 0.93**, **0 raw copies** |
+| `check_submission.py --run` (3 practice runs) | **`READY TO SUBMIT`** — same secret twice gives byte-identical `sanitized/` + `records.jsonl`; a different secret changes pseudonyms/date shifts; `RAKSHA_SECRET` never appears in output or logs; input directory left unmodified |
+| Offline (`unshare --net`, zero interfaces) | exit 0, output byte-identical to the networked run (only the self-reported wall-clock/RSS timing fields in `report.json` differ) |
+| CPU-constrained (`taskset -c 0,1`, matching the sandbox's 2-CPU budget) | exit 0, `CONTRACT OK`, ~5.4 s |
+
+Every number above is a fresh measurement from this session, not carried over from an earlier report. It confirms the problem statement's **offline, CPU-only, deterministic** requirements hold against the actual organizer checker, not just this project's own tests.
+
+**Generalization on data the rules were never tuned against:** `scripts/make_heldout_corpus.py` builds an independent synthetic corpus authored specifically to share no surface forms with the practice data — new hospitals, new header spellings ("Patient's Full Name", "Contact#", "Gram/Mohalla"), new identifier prefixes (`KGH`/`NVH`/`MCN` vs. practice's `JJH`/`SNJ`/`DHH`), cp1252/UTF-16 encodings, and mixed date conventions, scored by `scripts/score_heldout.py` against its own answer key:
+
+| Recorded measurement | Result | Scope |
+|---|---|---|
+| Identifying entities leaked | **0 / 176 (0.0%)**, every type/language/channel at 0% | 16-file independent corpus, re-generated and re-scored this session |
+| Clinical values preserved | **35 / 35 (100.0%)** | Same corpus |
+| Scale smoke test (`scripts/gen_smoke_batch.py`, 377 files) | `CONTRACT OK` in **1.46 s** | Throughput sanity check, not a judge resource guarantee |
+
+The organizer's own published reference points (practice data, official evaluator) are: copying everything unchanged scores below 0, the shipped `starter/` (regex only, no linking) scores ≈8, deleting everything scores ≈20, and "a solid firewall built by the organisers" scores ≈79 on practice and ≈50 on an unseen-format dataset. Every locally measurable metric above — zero leaks across all six channels on both the practice and the independent corpus, 97–100% clinical retention, zero false merges — is at or beyond that organizer reference bar. The one number nobody outside the sealed evaluator can produce is the **adversarial privacy-arena score** (25% of the official 100-point weight in `scoring.toml`, run by the organizer's own attacker against hidden datasets); it is not claimed here, and no total weighted score is fabricated to stand in for it.
+
+The latest full engine evaluation narrative is recorded in the **[Gate 0.5 report](GATE05_FINAL_REPORT.md)**. Its measurements are synthetic-corpus evidence, not a clinical-deployment guarantee:
 
 | Recorded measurement | Gate 0.5 result | Scope |
 |---|---|---|
@@ -288,7 +310,9 @@ The latest engine evaluation is recorded in the **[Gate 0.5 report](GATE05_FINAL
 | Files exported / quarantined | **189 / 11** | 200 practice inputs; exclusions remain visible. |
 | Independent synthetic corpus | **0 / 176 leaks; 35 / 35 clinical values retained** | 16 generated files with new surface forms; authored within this project. |
 
-The [experiment ledger](docs/gate05-experiments.md) records rejected approaches, regressions and privacy/utility tradeoffs. Historical Phase 1, Phase 2 and Gate 0 reports describe earlier states; Gate 0.5 corrects two Gate 0 accounting figures. Their snapshot notices distinguish historical test counts, scope and working-tree statements from the current implementation. Practice-corpus scores above are recorded Gate 0.5 results, not a fresh practice-corpus evaluation during this documentation review.
+The [experiment ledger](docs/gate05-experiments.md) records rejected approaches, regressions and privacy/utility tradeoffs. Historical Phase 1, Phase 2 and Gate 0 reports describe earlier states; Gate 0.5 corrects two Gate 0 accounting figures. Their snapshot notices distinguish historical test counts, scope and working-tree statements from the current implementation. Practice-corpus scores in the Gate 0.5 table were recorded during that phase; the organizer-toolkit and held-out-corpus numbers above this paragraph are this session's fresh re-run and match them, confirming the result reproduces rather than regressing.
+
+**Still outstanding, not covered by any check above:** the 2-page Project Brief PDF required for submission does not exist yet in this repository (`check_submission.py`'s "Project Brief PDF found" is a false positive matching a corrupt test fixture, `.pdf` extension only — see the Gate 0.5 report's note on this). Writing it is unique team content outside the scope of an automated verification pass.
 
 <details>
 <summary><b>Reproduce the checks and synthetic-corpus evaluation</b></summary>

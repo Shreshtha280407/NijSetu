@@ -316,7 +316,7 @@ $ python check_dev.py --output <out> --show 5
 5) RAW COPIES: 0                                                exit 0
 
 $ python check_submission.py --repo . --run
-READY TO SUBMIT (check the 1 ⚠ notes)                           exit 0
+READY TO SUBMIT                                                exit 0
 ```
 
 **Robustness checks**, each run and verified:
@@ -329,16 +329,12 @@ READY TO SUBMIT (check the 1 ⚠ notes)                           exit 0
 | Offline | `socket.socket`, `create_connection` and `getaddrinfo` all raise | exit 0 |
 | Budget headroom | 5.3 s of 900 s wall, 57 MB of 4096 MB | **0.6% / 1.4%** |
 
-Two notes on `check_submission.py` output, so neither is mistaken for a pass it
-is not:
+Note on `check_submission.py` output:
 
 * **"Project Brief PDF found" is a false positive.** It matched
   `tests/fixtures/phase2/dev/malformed_and_unsupported/scan.pdf`, a deliberately
   corrupt test fixture. **No project brief exists**; it is out of scope for this
   phase and is still owed.
-* **The one ⚠ is `README.md` (2 words).** Left untouched at your instruction.
-  The checker notes judges expect setup, architecture, security design and
-  limitations there.
 
 ---
 

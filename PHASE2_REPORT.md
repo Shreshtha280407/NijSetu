@@ -1,7 +1,7 @@
 # NijSetu Phase 2 — Implementation and Verification Report
 
 > **Historical Phase 2 record. Reviewed 27 November 2026.** Test totals,
-> commit references and working-tree statements below belong to those
+> baseline descriptions and working-tree statements below belong to those
 > implementation sessions. Current setup and verification are in the
 > [root README](README.md); the [Gate 0.5 report](GATE05_FINAL_REPORT.md)
 > records later detection, date-convention, linkage and accounting changes.
@@ -14,8 +14,8 @@
 ## Follow-up: risk groups derived from released values (26 November 2026)
 
 This follow-up supersedes the risk-after implementation and test totals
-recorded in the historical report below. Review of `e874063` reproduced a
-remaining discrepancy: two patients admitted in October were released with
+recorded in the historical report below. Review of the initial Phase 2 release
+reproduced a remaining discrepancy: two patients admitted in October were released with
 dates `2024-09-19` and `2024-10-11`, but `risk_after` still placed both in
 October and reported zero singletons.
 
@@ -62,19 +62,18 @@ analysis, and secure export — `sanitize`, `validate`, and `gate phase2`.
 Phase 1 (ingest/detect/link, `analyze`/`gate phase1`) is reused unchanged in
 behavior; Phase 3 (frontend, packaging, submission) is out of scope.
 
-This revision closes five gaps found on top of commit `7d7dce2` ("8 gaps
-fixed") plus a further six related defects found while fixing them, and
-corrects that commit's report, which claimed PASS while shipping live
-leaks and a false-safe release-status defect.
+This revision closes five gaps in the Phase 2 baseline plus a further six
+related defects found while fixing them, and corrects the baseline report,
+which claimed PASS while shipping live leaks and a false-safe release-status
+defect.
 
 ## 1. Starting state and final working tree
 
-- **Starting/reviewed baseline: `7d7dce2a0c95f3b907020c7b8fbbfa0a70231851`**
-  ("8 gaps fixed"), confirmed as the branch tip before any work in this
-  session. Baseline re-verified before touching code: **216/216 tests
+- **Starting/reviewed baseline:** the Phase 2 implementation before the
+  five repairs below. Baseline re-verified before touching code: **216/216 tests
   pass, `ruff check` clean, Gate 1 PASS 14/14, Gate 2 PASS 15/15** — but
   each of the five findings below was independently reproduced against
-  this exact commit first (§2), proving the baseline's own PASS verdict
+  this baseline first (§2), proving the baseline's own PASS verdict
   was incomplete, not that the baseline was actually broken in a way its
   own suite could see.
 - **Working-tree status at the end of this session: uncommitted, local
@@ -94,7 +93,7 @@ leaks and a false-safe release-status defect.
 
 ### Gap 1 — CSV header still leaks an unfamiliar name
 
-**Reproduced on `7d7dce2`:** `UHID,Patient: Qzylom Narex` / `A01,clear` →
+**Reproduced on the Phase 2 baseline:** `UHID,Patient: Qzylom Narex` / `A01,clear` →
 the header survived verbatim in `released/file_0.csv`, and `leak_scan`
 reported `clean: true` (the name was never added to the known-literal list
 because headers were never scanned for PII at all).
@@ -144,7 +143,7 @@ parametrized negative), `test_unfamiliar_names_and_identifiers_in_headers_are_fl
 
 ### Gap 2 — Nested FHIR text still leaks
 
-**Reproduced on `7d7dce2`:** an `Observation.valueCodeableConcept.text` of
+**Reproduced on the Phase 2 baseline:** an `Observation.valueCodeableConcept.text` of
 `"Patient: Qzylom Narex"` survived unchanged in the released Bundle; the
 prior repair only scanned `valueString`/`conclusion`.
 
@@ -194,7 +193,7 @@ changed.
 
 ### Gap 3 — Risk report claims date generalization absent from output
 
-**Reproduced on `7d7dce2`:** two singleton patients (distinct months) under
+**Reproduced on the Phase 2 baseline:** two singleton patients (distinct months) under
 `k_threshold=3` → `risk_after.qi_coverage.visit_period` reported `0.0`
 (every patient's visit period "dropped"), while the released CSV still
 carried exact shifted dates (`2024-09-23`, `2024-09-28`, …) — the ladder's
@@ -235,7 +234,7 @@ hold/dependency-closure loop used for `contained`/`modifierExtension`/
 unresolved-required-reference holds, so a risk-held patient's FHIR
 resources are now excluded *before* the Bundle is built, and anything that
 required-references one of them cascades correctly — previously this path
-silently didn't exist, a declared gap in the `7d7dce2` report's own §9).
+silently didn't exist, a declared gap in the baseline report's own §9).
 
 **Regression evidence:** `test_risk_after_never_claims_date_generalization_the_output_does_not_have`
 (exact repro, asserts 4 full-precision dates present **and**
@@ -250,7 +249,7 @@ silently didn't exist, a declared gap in the `7d7dce2` report's own §9).
 
 ### Gap 4 — Configured JSON wrapper is lost
 
-**Reproduced on `7d7dce2`:** `--record-wrapper-key records` over
+**Reproduced on the Phase 2 baseline:** `--record-wrapper-key records` over
 `{"batchLabel": "synthetic-demo", "records": [...]}` → output became a
 bare `[...]` array; `batchLabel` was discarded with no trace.
 
@@ -293,7 +292,7 @@ always wrote a bare array when `record_wrapper_key` was set.
 
 ### Gap 5 — Published report lacks final status
 
-**Reproduced on `7d7dce2`:** on a clean `RELEASED` run, the published
+**Reproduced on the Phase 2 baseline:** on a clean `RELEASED` run, the published
 `report.json` had **no `status` key at all** — `status` was assigned to
 the in-memory `report` dict *after* `report.json` was already serialized,
 written, and hashed into `manifest.json`. The CLI (which reads the
@@ -332,7 +331,7 @@ failure (per the task's explicit review list):
 | 1 | **Cross-hospital identifier token collision.** `identifier_token` scoped a local scheme's HMAC namespace by `scheme` alone (`"uhid"`), never by issuer — two different hospitals' coincidentally-identical UHIDs tokenized to the **same** public token, even though identity resolution correctly kept them as different patients. | Extracted `identity.resolve_fallback_issuer` (same priority order Phase 1 already used for clustering: FACILITY_NAME field → `--source-system` config → per-file unknown scope); `sanitize.py` now fills in `Feature.issuer` for every local-scheme identifier before transform; `keys.identifier_token` takes an `issuer` param folded into the HMAC namespace while the visible `TKN-<SCHEME>-` prefix stays scheme-only (so the existing Gate 2 token regex is unaffected). | `test_cross_hospital_identical_local_uhid_tokenizes_differently` |
 | 2 | **FHIR `Encounter.period.start`/`.end` shared one scheme** (`"encounter_date"` for both), so `extract_assertions` (which keeps only the first Feature per scheme) silently dropped the discharge date — the 5-day-stay interval/duration invariant was **never actually checked** for FHIR, only assumed correct. | `period.start`/`.end` on an `Encounter` now tag `admission_date`/`discharge_date` respectively (unchanged for any other resource type). | `test_fhir_encounter_admission_discharge_scheme_not_colliding` |
 | 3 | **FHIR had no reparse-based clinical-invariant check at all** — CSV/JSON/TXT all independently re-derive assertions from the staged output before accepting a record; FHIR trusted its own rewrite unconditionally. | `rewrite_resource` now reparses the sanitized resource it just built with the same schema-aware FHIR field extractor (`_extract_resource`) and runs the identical `compare_assertions` check; a mismatch holds that resource via the existing dependency-closure fixed point. | `test_fhir_clinical_interval_invariant_actually_runs` (forces a mismatch, proves the resource is held, not merely logically reachable) |
-| 4 | **FHIR never participated in the small-cohort risk pre-filter** (declared as a known gap in `7d7dce2`'s own §9). | `sanitize_fhir_document(..., held_clusters=...)`; see Gap 3 above. | `test_fhir_required_reference_held_when_target_pre_held_by_small_cohort_risk` |
+| 4 | **FHIR never participated in the small-cohort risk pre-filter** (declared as a known gap in the baseline report's own §9). | `sanitize_fhir_document(..., held_clusters=...)`; see Gap 3 above. | `test_fhir_required_reference_held_when_target_pre_held_by_small_cohort_risk` |
 | 5 | **No `--input`/`--output` overlap guard.** `--output` nested inside `--input` passed the emptiness check, then the hidden staging sibling landed inside the very input tree `discover_files()` had just scanned, and the published release ended up nested inside its own source data. | `run_sanitize` now rejects (`INPUT_OUTPUT_PATH_OVERLAP`) when the resolved input/output paths are equal or either is an ancestor of the other. | `test_input_output_path_overlap_rejected` |
 | 6 | **Concurrent staging isolation had no test or Gate 2 coverage** — the task explicitly calls this out as the prior repair's omission. | No code change needed (the mechanism — a unique `tempfile.mkdtemp` staging root per run, live-owner-PID-checked stale cleanup — was already correct); added direct coverage. | `test_concurrent_sanitize_runs_stay_isolated`, `test_stale_staging_cleanup_never_touches_a_live_concurrent_jobs_directory`, Gate 2's `concurrent_runs_isolated` |
 
@@ -371,7 +370,7 @@ and implemented in [policy.py](src/nijsetu/phase2/policy.py) and
 ```
 python -m pytest tests/ -q
 ```
-**265 passed, 0 failed, 0 skipped** (216 unchanged from `7d7dce2` + **49
+**265 passed, 0 failed, 0 skipped** (216 unchanged baseline tests + **49
 new tests** in `tests/test_phase2_gap_fixes.py`, covering all five gaps,
 the six related defects, and the previously-untested concurrent-staging
 case). No test was skipped, xfailed, or weakened to pass; every negative
@@ -471,7 +470,7 @@ session). A fresh venv was created from it and bootstrapped with
 The user's global Python 3.14 install was never touched.
 
 ```
-/home/nipun/.local/bin/python3.11 -m venv .venv311
+python3.11 -m venv .venv311
 .venv311/bin/python -m ensurepip --upgrade
 .venv311/bin/pip install --no-build-isolation --no-index --find-links vendor/wheels -e ".[dev]"
 ```
@@ -556,7 +555,7 @@ or renamed ones), so Phase 3's integration surface is unaffected.
 
 ## 10. Verdict
 
-**PASS.** All five findings reproduced against `7d7dce2`, root-caused, and
+**PASS.** All five findings reproduced against the Phase 2 baseline, root-caused, and
 fixed with evidence that the specific failure path no longer executes, not
 merely that *something* changed. Six further related defects found during
 a targeted adjacent-code review were fixed with the same standard. Every

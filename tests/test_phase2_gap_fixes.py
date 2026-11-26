@@ -1,5 +1,4 @@
-"""Regression tests for the five Phase 2 gaps found on top of commit
-7d7dce2 ("8 gaps fixed"), plus the related defects found while fixing them.
+"""Regression tests for five Phase 2 baseline gaps and related defects.
 
 Gap 1: CSV/TSV header name leak (unfamiliar name following a real
        identifying label survived unchanged).

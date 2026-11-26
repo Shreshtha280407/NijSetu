@@ -1,7 +1,7 @@
 # NijSetu Phase 1 — Repair and Revalidation Report
 
 > **Historical Phase 1 record. Reviewed 27 November 2026.** The scope,
-> commits, working-tree state and measurements below describe that repair
+> baseline behavior, working-tree state and measurements below describe that repair
 > session. The repository now includes Phase 2 sanitization, organizer
 > integration and a synthetic React dashboard. Use the [root README](README.md)
 > for current setup and verification, and the [Gate 0.5 report](GATE05_FINAL_REPORT.md)
@@ -18,12 +18,10 @@ checks) was not touched, and no frontend code existed at that stage.
 
 ## 1. Starting state and current base
 
-- Reviewed starting commit: `bfa856c2f45c40c309cb72d974e1a9832bf08165`
-  ("Implement NijSetu Phase 1: ingest, detect, and link pipeline").
-- Current base commit: **the same SHA** — `HEAD` had not advanced since the
-  review; nothing needed re-reproduction against a moved target.
+- Reviewed baseline: the initial Phase 1 ingest, detection and identity-linking
+  pipeline, before the repairs described below.
 - All five confirmed findings below were independently reproduced against
-  this commit before any fix was written, per-finding, using the real
+  this baseline before any fix was written, per-finding, using the real
   implementation (not mocked).
 - **Working-tree status at the end of this session: uncommitted, local
   only.** `git status` shows 20 modified tracked files and 8 new untracked
