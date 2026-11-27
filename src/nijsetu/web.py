@@ -1,7 +1,11 @@
 """Loopback HTTP adapter for the real engine. Run: python -m nijsetu.web.
 
-Uploaded inputs and private analysis stay in a mode-0700 temporary workspace.
-Only the validated public release enters the downloadable archive.
+Uploaded raw files are sealed as AES-256-GCM ciphertext (nijsetu.security)
+the instant they arrive and are only ever decrypted into a verified
+RAM-backed (tmpfs) directory for the duration of one run's processing --
+never into ordinary persistent storage. The private analysis plan stays
+in-process memory and is never written to disk at all. Only the validated
+public release enters the downloadable archive.
 """
 from __future__ import annotations
 
@@ -14,6 +18,7 @@ import os
 import secrets
 import shutil
 import stat
+import tempfile
 import threading
 import time
 import zipfile
@@ -28,6 +33,7 @@ from .phase2.policy import POLICIES
 from .phase2.sanitize import run_sanitize
 from .phase2.validate import validate_release
 from .plan.builder import run_pipeline
+from .security import SecureStore, SecureStoreError, ram_backed_tempdir
 
 MAX_BYTES = 32 * 1024 * 1024
 MAX_BODY = 46 * 1024 * 1024
@@ -102,6 +108,21 @@ def decode_files(entries: list) -> dict[str, bytes]:
     return files
 
 
+def _check_path_conflicts(names) -> None:
+    """A later filesystem reconstruction (decrypting into a real directory
+    for the engine to read) would fail if one uploaded name is itself a
+    file ("a.txt") while another treats it as a directory ("a.txt/b.txt").
+    Checked here, purely against the logical names in memory, so the
+    request is rejected up front -- before anything is written anywhere,
+    encrypted or not."""
+    names_set = set(names)
+    for name in names_set:
+        parts = PurePosixPath(name).parts
+        for i in range(1, len(parts)):
+            if "/".join(parts[:i]) in names_set:
+                raise RequestError('CONFLICTING_FILE_PATHS')
+
+
 def policy_options() -> dict:
     return {name: {
         'label': name.title(),
@@ -123,10 +144,18 @@ class WorkspaceService:
         self.lock = threading.RLock()
         self.runs: dict[str, dict] = {}
         self.executor = ThreadPoolExecutor(max_workers=1)
+        # HMAC release key (phase2.keys / run_sanitize's pseudonymization
+        # domain) and the AES storage-encryption key below are deliberately
+        # two independently-random keys from two separate cryptographic
+        # domains -- see nijsetu.security's module docstring. Neither is
+        # ever derived from the other.
         self.key = secrets.token_bytes(32)
+        self.storage_key = secrets.token_bytes(32)
+        self.vault = SecureStore(self.root / '_vault', self.storage_key)
 
     def close(self):
         self.executor.shutdown(wait=True)
+        self.vault.close()
         self.temp.cleanup()
 
     def create(self, payload: dict) -> dict:
@@ -155,20 +184,25 @@ class WorkspaceService:
             if sum(r['state'] not in ('complete', 'failed') for r in self.runs.values()) >= 2:
                 raise RequestError('ENGINE_BUSY_TRY_AGAIN', 429)
             run_id = secrets.token_hex(16)
-            input_dir = self.root / run_id / 'input'
-            input_dir.mkdir(parents=True, mode=0o700)
+            (self.root / run_id).mkdir(mode=0o700)  # guarantees a cleanup target even if _process never reaches Staging()
+            _check_path_conflicts(files.keys())
+            # Raw uploaded bytes are never written to disk in plaintext: each
+            # file is sealed into the vault (AES-256-GCM, logical name hashed
+            # into a generic physical filename) immediately on arrival, so a
+            # disk snapshot or a crash before processing starts never
+            # discloses them. See _process for the matching decrypt step.
             try:
                 for name, data in files.items():
-                    path = input_dir / name
-                    path.parent.mkdir(parents=True, exist_ok=True)
-                    path.write_bytes(data)
-            except (OSError, ValueError):
-                shutil.rmtree(input_dir.parent)
-                raise RequestError('CONFLICTING_FILE_PATHS') from None
+                    self.vault.write_encrypted(f'{run_id}:{name}', data, purpose=b'upload')
+            except (OSError, SecureStoreError):
+                for name in files:
+                    self.vault.delete(f'{run_id}:{name}')
+                raise RequestError('UPLOAD_STORAGE_FAILURE') from None
             self.runs[run_id] = {
                 'id': run_id, 'state': 'queued', 'progress': 0, 'stage': 'Queued for engine',
                 'policy': policy, 'demo': demo, 'reviewed': False, 'file_count': len(files),
-                '_created': now,
+                '_created': now, '_file_names': list(files.keys()),
+                '_upload_bytes': sum(len(d) for d in files.values()),
             }
             config = AppConfig(source_system_map=tuple((name, 'DEMO_HOSPITAL' if demo else source) for name in files) if demo or source else ())
             self.executor.submit(self._process, run_id, config)
@@ -186,9 +220,37 @@ class WorkspaceService:
 
     def _process(self, run_id: str, config: AppConfig):
         root = self.root / run_id
+        file_names = self.runs[run_id]['_file_names']
+        decrypt_dir = None
         try:
             self._update(run_id, state='running', progress=15, stage='Parsing files, detecting identifiers and linking patients')
-            plan = run_pipeline(root / 'input', config)
+            # The ingest/detect/sanitize pipeline needs real filesystem
+            # paths, but the decrypted bytes must never land on ordinary
+            # persistent storage: staged into a directory verified to be
+            # tmpfs (RAM-backed, so a disk snapshot/backup never captures
+            # it), not merely assumed to be. No fallback to plain disk --
+            # if no RAM-backed storage is available, the run fails closed
+            # instead of silently writing plaintext to persistent storage.
+            # Required space scales with THIS run's actual upload size
+            # (headroom for the plaintext copy plus tmpdir/inode overhead),
+            # not the dataset-wide upload ceiling -- a 1 KB upload must not
+            # need the same tmpfs space as a full 32 MiB one.
+            min_free = max(self.runs[run_id]['_upload_bytes'] * 2, 1 * 1024 * 1024)
+            ram_root = ram_backed_tempdir(min_free_bytes=min_free)
+            if ram_root is None:
+                raise RequestError('RAM_BACKED_STORAGE_UNAVAILABLE')
+            decrypt_dir = Path(tempfile.mkdtemp(prefix=f'nijsetu-run-{run_id}-', dir=str(ram_root)))
+            os.chmod(decrypt_dir, 0o700)
+            input_dir = decrypt_dir / 'input'
+            input_dir.mkdir(mode=0o700)
+            for name in file_names:
+                data = self.vault.read_decrypted(f'{run_id}:{name}', purpose=b'upload')
+                path = input_dir / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(data)
+                os.chmod(path, 0o600)
+
+            plan = run_pipeline(input_dir, config)
             records = []
             for r in plan.private['records']:
                 names = [f['original_text'] for f in r['features'] if f['role'] == 'PATIENT_NAME']
@@ -200,7 +262,7 @@ class WorkspaceService:
                     'features': [{'role': f['role'], 'tier': f['confidence_tier'], 'rules': [e['rule_id'] for e in f['evidence']]} for f in r['features']],
                 })
             self._update(run_id, progress=45, stage='Sanitizing with the selected privacy policy')
-            outcome = run_sanitize(root / 'input', root / 'release', POLICIES[self.runs[run_id]['policy']], run_id, self.key, config)
+            outcome = run_sanitize(input_dir, root / 'release', POLICIES[self.runs[run_id]['policy']], run_id, self.key, config)
             self._update(run_id, progress=85, stage='Validating the published release')
             validation = validate_release(root / 'release') if outcome.output_dir else None
             holds = json.loads((root / 'release' / 'hold_index.json').read_text()) if outcome.output_dir else []
@@ -221,7 +283,10 @@ class WorkspaceService:
             # Patient content and keys must never appear in errors or access logs.
             self._update(run_id, state='failed', progress=100, stage='Processing failed', error='ENGINE_PROCESSING_FAILED')
         finally:
-            shutil.rmtree(root / 'input', ignore_errors=True)
+            if decrypt_dir is not None:
+                shutil.rmtree(decrypt_dir, ignore_errors=True)
+            for name in file_names:
+                self.vault.delete(f'{run_id}:{name}')
 
     def review(self, run_id: str) -> dict:
         with self.lock:

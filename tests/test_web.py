@@ -2,7 +2,11 @@
 import base64
 import io
 import json
+import os
+import signal
 import stat
+import subprocess
+import sys
 import threading
 import time
 import urllib.error
@@ -98,6 +102,24 @@ def test_demo_file_removal_is_honored(service):
     assert len(run['result']['records']) == 1
 
 
+def test_tiny_upload_succeeds_on_a_64_mib_constrained_tmpfs(service, monkeypatch):
+    # Regression: the tmpfs free-space floor used to be a flat MAX_BYTES * 4
+    # (128 MiB) no matter how small the upload was, so a container exposing
+    # only 64 MiB under /dev/shm rejected even a one-line CSV with
+    # RAM_BACKED_STORAGE_UNAVAILABLE. It must now scale with this run's own
+    # upload size.
+    from nijsetu.security import secure_store
+
+    class FakeUsage:
+        def __init__(self, free):
+            self.total = self.used = 0
+            self.free = free
+
+    monkeypatch.setattr(secure_store.shutil, 'disk_usage', lambda path: FakeUsage(64 * 1024 * 1024))
+    run = completed(service, {'files': [upload('tiny.csv', b'Patient Name,UHID\nMeera Sharma,TINY001')]})
+    assert run['result']['release_ready']
+
+
 def zip_upload(entries):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w') as archive:
@@ -190,3 +212,108 @@ def test_http_contract_and_local_origin_protection(service, tmp_path):
         server.shutdown()
         server.server_close()
         thread.join()
+
+
+# --- Gate 0.6: encryption-at-rest for dashboard uploads ---------------------
+
+_CANARY_MARKERS = {
+    'name': b'Fictitious Canary Patientname',
+    'aadhaar': b'234567890123',
+    'uhid': b'UHCANARY999PII',
+    'phone': b'9123456789',
+    'address': b'221B Canary Baker Street Lucknow',
+}
+_CANARY_FILENAME = 'canary_patientname_record.csv'
+
+
+def _canary_csv() -> bytes:
+    return (
+        b'Patient Name,UHID,Phone,Address,Aadhaar\n'
+        + b','.join([_CANARY_MARKERS['name'], _CANARY_MARKERS['uhid'], _CANARY_MARKERS['phone'],
+                     _CANARY_MARKERS['address'], _CANARY_MARKERS['aadhaar']])
+        + b'\n'
+    )
+
+
+def test_raw_pii_never_touches_disk_as_plaintext(service):
+    """While an upload is sealed in the vault and while it is being
+    processed, every file actually on disk under the service's workspace
+    must be inspected and found free of the raw PII bytes and of the
+    uploaded filename -- content AND path/metadata, per the Gate 0.6
+    confidentiality requirement."""
+    run = service.create({'files': [upload(_CANARY_FILENAME, _canary_csv())]})
+
+    def scan_disk():
+        for p in service.root.rglob('*'):
+            if not p.is_file():
+                continue
+            assert _CANARY_FILENAME.split('.')[0] not in p.name, f"filename leaked in path {p}"
+            raw = p.read_bytes()
+            for label, needle in _CANARY_MARKERS.items():
+                assert needle not in raw, f"{label} leaked into {p}"
+            assert b'canary_patientname_record' not in raw
+
+    scan_disk()  # immediately after create(): upload must already be ciphertext
+    deadline = time.monotonic() + 15
+    state = run['state']
+    while state not in ('complete', 'failed') and time.monotonic() < deadline:
+        scan_disk()  # during processing: decrypted copy must live only in tmpfs, never under service.root
+        time.sleep(.01)
+        state = service.get(run['id'])['state']
+    assert state == 'complete'
+    scan_disk()  # after completion: vault blob for this run must be gone, nothing plaintext remains
+
+
+def test_vault_key_is_independent_of_hmac_release_key(service):
+    assert service.storage_key != service.key
+
+
+@pytest.mark.skipif(sys.platform != 'linux', reason="relies on /proc/mounts and SIGKILL semantics")
+def test_sigkill_during_processing_leaves_only_ciphertext_behind(tmp_path: Path):
+    """Gate 0.6 Threat B, demonstrated rather than claimed: start a real
+    WorkspaceService in a subprocess, hand it a canary upload, SIGKILL the
+    process mid-run (no clean shutdown, no close()), then inspect whatever
+    the OS left on disk. The orphaned vault ciphertext is expected to
+    survive (nothing here claims SIGKILL triggers cleanup) -- what matters
+    is that it is never the raw PII in readable form."""
+    script = tmp_path / 'run_service.py'
+    marker_path = tmp_path / 'root_path.txt'
+    script.write_text(
+        "import sys, time, base64\n"
+        "sys.path.insert(0, " + repr(str(Path(__file__).resolve().parent.parent / 'src')) + ")\n"
+        "from nijsetu.web import WorkspaceService\n"
+        "s = WorkspaceService()\n"
+        "open(" + repr(str(marker_path)) + ", 'w').write(str(s.root))\n"
+        "data = b'Patient Name,UHID\\nSigkillCanaryName,UHSIGKILL777\\n'\n"
+        "s.create({'files': [{'name': 'f.csv', 'content': base64.b64encode(data).decode()}]})\n"
+        "time.sleep(30)\n",
+        encoding='utf-8',
+    )
+    proc = subprocess.Popen([sys.executable, str(script)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        deadline = time.monotonic() + 10
+        while not marker_path.exists() and time.monotonic() < deadline:
+            time.sleep(.05)
+        assert marker_path.exists(), "service never started"
+        time.sleep(.3)  # let create() finish sealing the upload into the vault
+        workspace_root = Path(marker_path.read_text())
+        os.kill(proc.pid, signal.SIGKILL)
+        proc.wait(timeout=5)
+
+        assert workspace_root.exists(), "nothing left behind to inspect -- test is not exercising the crash path"
+        found_any_file = False
+        for p in workspace_root.rglob('*'):
+            if not p.is_file():
+                continue
+            found_any_file = True
+            raw = p.read_bytes()
+            assert b'SigkillCanaryName' not in raw
+            assert b'UHSIGKILL777' not in raw
+        assert found_any_file, "expected leftover ciphertext from the killed run; found none"
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait(timeout=5)
+        import shutil as _shutil
+        if marker_path.exists():
+            _shutil.rmtree(Path(marker_path.read_text()), ignore_errors=True)

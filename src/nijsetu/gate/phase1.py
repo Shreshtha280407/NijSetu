@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import stat
 import subprocess
 import sys
@@ -19,8 +20,9 @@ from pathlib import Path
 
 from ..config import AppConfig
 from ..detect import detect_in_text
-from ..plan import run_pipeline
+from ..plan import read_private_artifact, run_pipeline
 from ..schema import SourceCoordinate
+from ..security import SecureStoreError
 from .fixtures_locator import find_fixtures_root
 
 # The synthetic dev fixtures' declared source contract: arif_corroborated/
@@ -422,14 +424,44 @@ def _check_no_canary_leak(safe_report: dict, private_path: Path, filename_canary
     return CheckResult("no_canary_leak_in_safe_report", ok, "; ".join(detail) or "canaries absent from safe report")
 
 
-def _check_private_artifact_protected(private_path: Path) -> CheckResult:
+def _check_private_artifact_protected(private_path: Path, private_key: bytes) -> CheckResult:
+    """Gate 0.6: the artifact on disk is AES-256-GCM ciphertext now, not
+    plaintext JSON -- this decrypts it with the SAME key `write_plan` used
+    (the gate's own, never written anywhere) to confirm the content behind
+    the ciphertext is still the labelled private plan, and that an
+    authorized reader with the right key still works end to end."""
     mode = stat.S_IMODE(os.stat(private_path).st_mode)
     owner_only = mode == (stat.S_IRUSR | stat.S_IWUSR)
-    labelled = "PRIVATE" in json.loads(private_path.read_text(encoding="utf-8")).get("label", "")
-    ok = owner_only and labelled
+    try:
+        decrypted = read_private_artifact(private_path, private_key)
+        labelled = "PRIVATE" in decrypted.get("label", "")
+        decrypt_ok = True
+    except SecureStoreError:
+        labelled, decrypt_ok = False, False
+    ok = owner_only and labelled and decrypt_ok
     return CheckResult(
         "private_artifact_protected", ok,
-        f"mode={oct(mode)} labelled={labelled}",
+        f"mode={oct(mode)} labelled={labelled} decrypt_ok={decrypt_ok}",
+    )
+
+
+def _check_private_artifact_is_ciphertext_not_plaintext(private_path: Path) -> CheckResult:
+    """Gate 0.6: the private artifact's own bytes on disk must not be
+    readable as the plan's content without the key -- i.e. it must not
+    parse as JSON at all, and the plaintext "PRIVATE" label/record markers
+    must not appear in the raw bytes."""
+    raw = private_path.read_bytes()
+    not_json = True
+    try:
+        json.loads(raw.decode("utf-8"))
+        not_json = False
+    except (UnicodeDecodeError, ValueError):
+        pass
+    no_plaintext_markers = b"PRIVATE" not in raw and b"record_key" not in raw
+    ok = not_json and no_plaintext_markers
+    return CheckResult(
+        "private_artifact_is_ciphertext_not_plaintext", ok,
+        f"not_json={not_json} no_plaintext_markers={no_plaintext_markers}",
     )
 
 
@@ -451,9 +483,11 @@ def _check_wheel_offline_gazetteer(repo_root: Path) -> CheckResult:
             return CheckResult("wheel_offline_gazetteer", False, f"venv creation failed: {venv_out.stderr[-2000:]}")
         venv_python = venv_dir / "bin" / "python"
 
-        # --no-index: the pinned runtime dependency (rapidfuzz) must resolve
-        # entirely from the local vendor wheelhouse, proving no network call
-        # is required to install or run the package.
+        # --no-index: the pinned mandatory runtime dependency (cryptography,
+        # and transitively cffi/pycparser) must resolve entirely from the
+        # local vendor wheelhouse, proving no network call is required to
+        # install or run the package. RapidFuzz remains optional and is not
+        # required to resolve here at all.
         install_out = subprocess.run(
             [str(venv_python), "-m", "pip", "install", "--no-index",
              "--find-links", str(tmp_path), "--find-links", str(vendor_wheels),
@@ -527,7 +561,8 @@ def run_gate_phase1(output_dir: Path) -> int:
 
     dev_out = output_dir / "dev_run"
     from ..plan import write_plan
-    write_plan(dev_plan, dev_out)
+    gate_private_key = secrets.token_bytes(32)
+    write_plan(dev_plan, dev_out, gate_private_key)
 
     checks = [
         _check_adapters_and_encodings(dev_plan.private),
@@ -542,7 +577,8 @@ def run_gate_phase1(output_dir: Path) -> int:
         _check_explicit_conflict_reasons(dev_plan.private),
         _check_clinical_semantics(),
         _check_no_canary_leak(canary_plan.safe_report, dev_out / "private" / "analysis.json", filename_canary_plan.safe_report),
-        _check_private_artifact_protected(dev_out / "private" / "analysis.json"),
+        _check_private_artifact_protected(dev_out / "private" / "analysis.json", gate_private_key),
+        _check_private_artifact_is_ciphertext_not_plaintext(dev_out / "private" / "analysis.json"),
         _check_wheel_offline_gazetteer(fixtures_root.parent.parent),
     ]
 

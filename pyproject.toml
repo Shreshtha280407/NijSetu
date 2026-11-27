@@ -10,12 +10,20 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
-# No mandatory runtime dependency: the package is pure Python and installs
-# offline on any CPython >= 3.10. RapidFuzz is a *preferred* accelerator for
-# the two name-similarity calls (see nijsetu.translit.similarity, which falls
-# back to a tested-equivalent pure-Python implementation); making it required
-# would tie the submission to one compiled ABI.
-dependencies = []
+# RapidFuzz remains a *preferred accelerator only* (see nijsetu.translit.similarity's
+# tested-equivalent pure-Python fallback) and stays out of `dependencies` so a
+# failed/skipped install there degrades speed, never correctness.
+#
+# `cryptography` is the one mandatory runtime dependency: Gate 0.6 encrypts
+# NijSetu's own raw/private working files at rest (see nijsetu.security) with
+# AES-256-GCM, and the stdlib has no audited AEAD primitive to do that
+# without one. Pinned exactly (never a floor) so the organizer's `pip
+# install .` resolves one known-good, pre-built wheel; vendor/wheels/ carries
+# that wheel plus its own two dependencies (cffi, pycparser) for the same
+# cp311-manylinux offline install path rapidfuzz already uses.
+dependencies = [
+    "cryptography==46.0.7",
+]
 
 [project.optional-dependencies]
 speed = [
