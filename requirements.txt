@@ -4,9 +4,12 @@
 # convention (check_submission.py checks it is present) and must be kept in
 # sync with pyproject.toml by hand.
 #
-# NijSetu has NO mandatory runtime dependency -- it is pure Python and runs
-# offline on any CPython >= 3.10. RapidFuzz below is an optional accelerator
-# for two name-similarity calls; nijsetu.translit.similarity falls back to a
-# tested-equivalent pure-Python implementation when it is not installed, so a
-# failed/skipped install here degrades speed, never correctness.
+# cryptography is NijSetu's one mandatory runtime dependency (Gate 0.6:
+# AES-256-GCM encryption at rest for raw/private working files -- see
+# nijsetu.security). RapidFuzz below is still an optional accelerator for
+# two name-similarity calls; nijsetu.translit.similarity falls back to a
+# tested-equivalent pure-Python implementation when it is not installed, so
+# a failed/skipped install of RapidFuzz (only) degrades speed, never
+# correctness.
+cryptography==46.0.7
 rapidfuzz==3.14.6

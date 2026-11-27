@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import secrets
 import sys
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from .phase2 import load_policy, run_sanitize, validate_release
 from .phase2.keys import KeyError_, load_master_key
 from .phase2.policy import PolicyError
 from .plan import run_pipeline, write_plan
+from .security import derive_storage_key
 
 
 class _Parser(argparse.ArgumentParser):
@@ -47,6 +49,14 @@ def build_parser() -> argparse.ArgumentParser:
              "Repeatable. Two paths given the SAME issuer are deliberately treated as one shared "
              "source system for identifier scoping; unconfigured paths default to a conservative "
              "per-file unknown scope and never merge across files.",
+    )
+    analyze.add_argument(
+        "--private-key-file", default=None, metavar="PATH",
+        help="Local file holding the key that encrypts private/analysis.json at rest. If the file "
+             "does not exist, a new random key is generated and written there (0600) so the same "
+             "command can decrypt the artifact again later. Omitted entirely: the artifact is "
+             "still encrypted, but under a key that exists only for this process and cannot be "
+             "recovered afterward -- a warning is printed to stderr.",
     )
 
     sanitize = sub.add_parser("sanitize", help="Produce a validated sanitized research release.")
@@ -125,14 +135,48 @@ def _run_analyze(args: argparse.Namespace) -> int:
         return 4
 
     try:
+        private_key = _resolve_private_key(args.private_key_file)
+    except KeyError_ as exc:
+        print(json.dumps({"status": "ERROR", "reason_code": exc.reason_code}), file=sys.stderr)
+        return 4
+
+    try:
         plan = run_pipeline(input_path, config)
     except Exception:  # noqa: BLE001 - never leak a traceback: it could carry patient data
         print(json.dumps({"status": "BLOCKED", "reason_code": "UNEXPECTED_PROCESSING_FAILURE"}), file=sys.stderr)
         return 3
 
-    write_plan(plan, output_dir)
+    write_plan(plan, output_dir, private_key)
     print(json.dumps(plan.safe_report, indent=2))
     return 0 if plan.safe_report["status"] == "CLEAN" else 2
+
+
+def _resolve_private_key(key_file_arg: str | None) -> bytes:
+    """Storage-encryption key for the private analysis artifact -- a
+    cryptographic domain distinct from the HMAC release key `sanitize`
+    uses. Never derived from RAKSHA_SECRET or any pseudonymization key."""
+    if not key_file_arg:
+        print(
+            "WARNING: --private-key-file not given; private/analysis.json is encrypted with an "
+            "ephemeral key that exists only for this process and cannot be decrypted afterward.",
+            file=sys.stderr,
+        )
+        return secrets.token_bytes(32)
+    key_path = Path(key_file_arg)
+    if key_path.is_file():
+        try:
+            material = key_path.read_bytes().strip()
+        except OSError:
+            raise KeyError_("KEY_FILE_UNREADABLE") from None
+        return derive_storage_key(material, context=b"analyze-private-key-file")
+    try:
+        material = secrets.token_bytes(32)
+        key_path.write_bytes(material)
+        key_path.chmod(0o600)
+    except OSError:
+        raise KeyError_("KEY_FILE_NOT_WRITABLE") from None
+    print(f"Generated a new private-artifact key file: {key_path}", file=sys.stderr)
+    return derive_storage_key(material, context=b"analyze-private-key-file")
 
 
 def _run_sanitize(args: argparse.Namespace) -> int:

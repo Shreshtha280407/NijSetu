@@ -36,7 +36,8 @@ NijSetu separates **identity evidence**, **privacy transformations** and **clini
 | Keep one patient's records connected | Scoped identifiers, explainable name evidence, cluster-level contradiction checks and consistent release-scoped tokens. |
 | Preserve useful medicine | Checks on recognized measurements, medications, history and temporal intervals during sanitization. |
 | Inspect what was excluded | Explicit reason codes, quarantine accounting and reports tied to published output. |
-| Work without cloud services | A CPU-only Python engine with no mandatory runtime dependencies or external model calls. |
+| Work without cloud services | A CPU-only Python engine with one mandatory dependency (`cryptography`, for encryption at rest) and no external model calls. |
+| Protect raw/private files at rest | Uploaded raw data and the private analysis artifact are AES-256-GCM ciphertext on disk, never plaintext -- see [Encryption at rest](#encryption-at-rest). |
 
 **Current implementation:** the React dashboard is connected to the Python engine through a local HTTP API. Judges can run the bundled demo or upload CSV, TSV, JSON/FHIR, TXT, folders or ZIP datasets. Review, policy selection, release checks, history and ZIP downloads use real engine results. Start everything with `bash scripts/start-dashboard.sh` and open **http://127.0.0.1:8765**.
 
@@ -213,7 +214,7 @@ python -m nijsetu sanitize \
 python -m nijsetu validate --release "$NIJSETU_DEMO_DIR/release"
 ```
 
-These three fixture files deliberately share one issuer; the options declare that relationship explicitly. `analyze` writes `report.json` and owner-restricted `private/analysis.json`. The latter contains sensitive source evidence and is **not a research export**. `sanitize` writes a different, checked release contract:
+These three fixture files deliberately share one issuer; the options declare that relationship explicitly. `analyze` writes `report.json` and an owner-restricted, **AES-256-GCM encrypted** `private/analysis.json` (add `--private-key-file PATH` to get a reusable key; omitted, the artifact is still encrypted but under a key that disappears with the process). The latter contains sensitive source evidence and is **not a research export**. `sanitize` writes a different, checked release contract:
 
 ```text
 release/
@@ -272,6 +273,10 @@ organizer-output/
 ```
 
 The adapter uses the balanced preset and a fixed organizer release ID. It verifies token claims at the exact CSV row or JSON pointer, rather than searching an entire file. This contract differs from the internal release and is checked by the organizer tooling, not `nijsetu validate`. [Organizer integration report](GATE0_FINAL_REPORT.md) · [Locator implementation](src/nijsetu/record_locator.py)
+
+### Encryption at rest
+
+NijSetu's own raw/private working files are protected against a stolen disk snapshot, a crash before cleanup, or a local user who can list working files but not inspect live process memory: **AES-256-GCM** (`nijsetu.security`, built on the audited `cryptography` package), a fresh random key per session/run held only in process memory, a versioned ciphertext envelope bound to its artifact's purpose and identity, and authentication failures that reject rather than fall back to plaintext. This is a cryptographic domain kept strictly separate from the HMAC pseudonymization keys that produce the published release. Two call sites: the dashboard's uploaded raw files (sealed on arrival; decrypted only into a verified RAM-backed directory for the duration of processing, never onto persistent disk) and the `analyze` CLI's `private/analysis.json`. It does **not** claim to defend against an attacker who already has root-level control and can read the live process's memory — see [`GATE06_SECURITY_FINAL_REPORT.md`](GATE06_SECURITY_FINAL_REPORT.md) for the full threat model, design and verification evidence.
 
 ## Verification and evidence
 
