@@ -255,6 +255,12 @@ def normalize_header(raw: str) -> str:
 _POSSESSIVE = re.compile(r"['’]s\b")
 _PARENTHETICAL = re.compile(r"\([^)]*\)")
 _NON_ALNUM = re.compile(r"[^0-9a-zऀ-ॿ]+")
+# A trailing format-hint token written WITHOUT parentheses ("DOB_YYYYMMDD",
+# "Reg Date DDMMYYYY") carries the same decoration _PARENTHETICAL already
+# strips ("DOB (MM/DD/YYYY)") -- just unwrapped. Matched narrowly (a
+# delimiter-bounded token made ONLY of the letters d/m/y, 4-8 of them) so it
+# can never eat into an unrelated real field name.
+_BARE_DATE_FORMAT_HINT = re.compile(r"[\s_/-]+[dmy]{4,8}\s*$", re.I)
 
 
 def _squash(text: str) -> str:
@@ -262,6 +268,7 @@ def _squash(text: str) -> str:
     "H.No" / "h no" / "house_no" collapse onto one another."""
     text = _POSSESSIVE.sub("", text.lower())
     text = _PARENTHETICAL.sub(" ", text)
+    text = _BARE_DATE_FORMAT_HINT.sub("", text)
     return _NON_ALNUM.sub("", text)
 
 

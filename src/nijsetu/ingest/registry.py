@@ -6,6 +6,9 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from .encoding import detect_and_decode
+from .header_aliases import resolve_header
+
 SUPPORTED_EXTENSIONS = {".csv": "csv", ".tsv": "tsv", ".json": "json", ".txt": "txt"}
 
 
@@ -62,7 +65,45 @@ def detect_format(path: Path) -> str:
         if _looks_like_fhir(path):
             return "fhir"
         return "json"
+    if fmt == "txt":
+        sniffed = _sniff_delimited_txt(path)
+        if sniffed:
+            return sniffed
     return fmt
+
+
+def _sniff_delimited_txt(path: Path) -> str | None:
+    """A ".txt" export can actually be a bare delimited table -- a legacy
+    hospital dump with a header row but the wrong extension (see
+    docs/DATASET.md's "legacy export formats" trap). Free-text scanning
+    only catches PII that carries an inline label or a gazetteer hit; a
+    value sitting in a recognized COLUMN position carries neither, so an
+    unpromoted file like this silently leaks whatever free-text scanning
+    cannot catch on its own (seen directly: compact DOB/village columns).
+
+    Promoted only on unambiguous evidence -- every one of several lines
+    splits into the SAME field count (>=3) on one consistent delimiter,
+    AND the header resolves at least two known field roles. Comma is
+    deliberately excluded (too common in ordinary prose/addresses to be a
+    safe signal); ordinary free text essentially never satisfies both
+    checks on tab or pipe.
+    """
+    try:
+        text, _enc = detect_and_decode(path.read_bytes()[:65536])
+    except Exception:
+        return None
+    lines = [ln for ln in text.splitlines() if ln.strip()][:20]
+    if len(lines) < 2:
+        return None
+    for delimiter, fmt in (("\t", "tsv"), ("|", "psv")):
+        split_lines = [ln.split(delimiter) for ln in lines]
+        n_cols = len(split_lines[0])
+        if n_cols < 3 or any(len(cols) != n_cols for cols in split_lines):
+            continue
+        resolved = sum(1 for h in split_lines[0] if resolve_header(h)[0] is not None)
+        if resolved >= 2:
+            return fmt
+    return None
 
 
 def _looks_like_fhir(path: Path) -> bool:

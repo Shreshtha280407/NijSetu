@@ -1,0 +1,68 @@
+{
+  "export_batch": [
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Shabnam Nair",
+            "dob": "2014-07-28"
+          },
+          "contact": {
+            "mobile": 9092372855
+          }
+        },
+        "facility": "Arogya Nilayam"
+      },
+      "meta": {}
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Sarika Nair",
+            "dob": "1958-06-20"
+          },
+          "contact": {
+            "mobile": "9230786800"
+          }
+        },
+        "facility": "Vatsalya Mother & Child Care"
+      },
+      "meta": {
+        "village": "Kotra Sultanpur"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Tarun Rizvi",
+            "dob": "2011-04-15"
+          },
+          "contact": {
+            "mobile": 9824251733
+          }
+        },
+        "facility": "Grameen Swasthya Kendra"
+      },
+      "meta": {
+        "village": "Gokulpur"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Avik Sahani",
+            "dob": "1990-11-25"
+          },
+          "contact": {
+            "mobile": "9548147829"
+          }
+        },
+        "facility": "Shubh Shanti Hospital"
+      },
+      "meta": {}
+    }
+  ]
+}

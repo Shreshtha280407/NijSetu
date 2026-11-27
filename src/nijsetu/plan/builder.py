@@ -235,7 +235,7 @@ def _build_safe_report(records, ingest_result, truncated_buckets, elapsed: float
     # file_no only: a raw (even relative) filename must never land in the safe report.
     unknown_count_files = [fr.file_no for fr in ingest_result.file_records if fr.record_count is None]
 
-    rows = sum(1 for r in records if r.format in ("csv", "tsv"))
+    rows = sum(1 for r in records if r.format in ("csv", "tsv", "psv"))
     resources = sum(1 for r in records if r.format == "fhir")
     all_refs = [ref for r in records for ref in r.fhir_references]
     refs_resolved = sum(1 for ref in all_refs if ref["resolved"])

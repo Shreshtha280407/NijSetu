@@ -17,8 +17,11 @@ class CsvResult:
     held_rows: list[tuple[int, list[str]]]  # (record_no, reason_codes) for malformed rows
 
 
+_DELIMITERS = {"tsv": "\t", "psv": "|"}
+
+
 def parse_csv(raw: bytes, rel_path: str, file_no: int, declared_format: str) -> CsvResult:
-    delimiter = "\t" if declared_format == "tsv" else ","
+    delimiter = _DELIMITERS.get(declared_format, ",")
     text, _enc = detect_and_decode(raw)
     if text.strip() == "":
         return CsvResult(

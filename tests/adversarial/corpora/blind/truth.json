@@ -1,0 +1,4106 @@
+{
+  "schema": "nijsetu-adversarial-truth-v1",
+  "seed": 3003,
+  "split": "blind",
+  "files": {
+    "registration_new_format/arogya_intake.csv": {
+      "format": "csv",
+      "units": {
+        "row:0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Suraj Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/50/5901",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "02.10.1979",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Madhavganj",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9012000579",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:1": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Rustam Warsi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/97/7260",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "04.11.1960",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9505057079",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Supriya Hegde"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:2": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Nair",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/45/1445",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "27.05.2018",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Kotra Sultanpur",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9397351781",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:3": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Meenal Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/79/3034",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "05.04.1973",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Sarai Mir",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9148453858",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Imtiaz Alam"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:4": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Deka",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/53/3688",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "03.08.2013",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Kotra Sultanpur",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9972500376",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:5": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Harleen Saluja",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/21/2717",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "10.05.2018",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Gokulpur",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9179462957",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Supriya Hegde"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:6": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Shabnam Deka",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/39/9320",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "11.03.2002",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Dhanauli",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9694401031",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Imtiaz Alam"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:7": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Komal Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/97/7045",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "18.11.2009",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Kotra Sultanpur",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9310068248",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:8": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Pallavi Khandare",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/21/9092",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "25.10.1998",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Bishunpur",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9352034573",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Jagmohan Rawat"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:9": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Bhagat",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/24/4529",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "09.04.1995",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Dhanauli",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9237438967",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Imtiaz Alam"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:10": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/75/3551",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "14.09.1976",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Semra",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9696197181",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Supriya Hegde"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:11": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Deka",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/96/9398",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "02.07.1946",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Bishunpur",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9626794062",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Supriya Hegde"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:12": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Harleen Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/55/4940",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "26.11.1949",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Semra",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9650476361",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Imtiaz Alam"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "row:13": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Harleen Deka",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "MRN",
+              "surface": "ARG/34/9565",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "09.06.1988",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Gokulpur",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9274233353",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "registration_new_format/legacy_export.txt": {
+      "format": "txt",
+      "units": {
+        "line1": {
+          "entities": [
+            {
+              "type": "MRN",
+              "surface": "LEG562268",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "19931224",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line2": {
+          "entities": [
+            {
+              "type": "MRN",
+              "surface": "LEG490738",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "20091023",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Kotra Sultanpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line3": {
+          "entities": [
+            {
+              "type": "MRN",
+              "surface": "LEG377156",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "19910511",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Bishunpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line4": {
+          "entities": [
+            {
+              "type": "MRN",
+              "surface": "LEG823413",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "20240611",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Madhavganj",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line5": {
+          "entities": [
+            {
+              "type": "MRN",
+              "surface": "LEG336238",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Deepti Deka",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "19600323",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Itwa Bazar",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line6": {
+          "entities": [
+            {
+              "type": "MRN",
+              "surface": "LEG116175",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Yogendra Nair",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "19880427",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Madhavganj",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line7": {
+          "entities": [
+            {
+              "type": "MRN",
+              "surface": "LEG587467",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Pallavi Bhagat",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "19660418",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "registration_new_format/vatsalya_nested.json": {
+      "format": "json",
+      "units": {
+        "/export_batch/0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Toppo",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "2020-03-15",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9738152163",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/export_batch/1": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Deepti Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "1948-06-26",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9484032762",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/export_batch/2": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Komal Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "1993-07-15",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9260907587",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/export_batch/3": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "1948-11-20",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9148596705",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/export_batch/4": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Harleen Bhagat",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "1959-05-05",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9907911521",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/export_batch/5": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Sarika Bhagat",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "2021-09-25",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9420235079",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/export_batch/6": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Komal Sahani",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "1994-02-02",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9296992537",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "opd_multilingual/opd_notes.txt": {
+      "format": "txt",
+      "units": {
+        "line0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "पल्लवी भगत",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "08-10-1994",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Semra",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line1": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Meenal टोप्पो",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "07-05-1980",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Bishunpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line2": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ni​khat‌ Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "18-02-1983",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Gokulpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line3": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Toppo",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "14-11-1968",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Madhavganj",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line4": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "शबनम खंडारे",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "25-01-1949",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Madhavganj",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line5": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev रिज़वी",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "10-02-2022",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Kotra Sultanpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line6": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Pa​llavi‌ Khandare",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "01-09-1984",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Sarai Mir",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line7": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "03-04-1952",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Kotra Sultanpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line8": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "तरुण खंडारे",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "02-04-1990",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line9": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Tarun साहनी",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "05-12-1971",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Kotra Sultanpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line10": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Fa​rida‌ Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "15-04-1979",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Semra",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line11": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Chauhan",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "11-11-1950",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line12": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "रुस्तम बेदी",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "14-04-1971",
+              "script": "deva",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "line13": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Sarika चौहान",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "28-02-1984",
+              "script": "hinglish",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Bishunpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "opd_multilingual/homonym_and_alias.csv": {
+      "format": "csv",
+      "units": {
+        "row:0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Suman Kumari",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-HOM-A",
+          "link": "required"
+        },
+        "row:1": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Suman Kumari",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-HOM-B",
+          "link": "required"
+        },
+        "row:2": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Rajendar Mishra",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-ALIAS",
+          "link": "required"
+        },
+        "row:3": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Rajender Mishraa",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-ALIAS",
+          "link": "required"
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Baldev_Nair_935109478531.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Nair",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "935109478531",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Nair",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "2008-06-27",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9476703560",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Nair",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Supriya Hegde"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Nikhat_Sahani_550223750119.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Sahani",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "550223750119",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Sahani",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1990-08-22",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9503257107",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Sahani",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Supriya Hegde"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Farida_Kalita_421671200250.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Kalita",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "421671200250",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Kalita",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1956-11-07",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9055361828",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Kalita",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Jagmohan Rawat"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Farida_Warsi_875272962893.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Warsi",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "875272962893",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Warsi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1996-03-16",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9053561680",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Warsi",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Sarika_Nair_842967779896.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Sarika Nair",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "842967779896",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Sarika Nair",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1958-01-17",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9779183815",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Sarika Nair",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Jagmohan Rawat"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Farida_Bedi_717264932544.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Bedi",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "717264932544",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Bedi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1959-08-09",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9658276544",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Bedi",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Ovais_Bhagat_345875367587.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Bhagat",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "345875367587",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Bhagat",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1952-06-15",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9522670652",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Bhagat",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Imtiaz Alam"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Avik_Bedi_188644169840.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Bedi",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "188644169840",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Bedi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1971-05-11",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9119243702",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Bedi",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Imtiaz Alam"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Deepti_Khandare_799926326626.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Deepti Khandare",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "799926326626",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Deepti Khandare",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1958-04-21",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9484960969",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Deepti Khandare",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Jagmohan Rawat"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Yogendra_Nair_178701240188.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Yogendra Nair",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "178701240188",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Yogendra Nair",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1983-11-04",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9563759149",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Yogendra Nair",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Imtiaz Alam"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Avik_Sahani_382215474046.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Sahani",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "382215474046",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Sahani",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1956-10-11",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9009058188",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Sahani",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Meenal_Bhagat_448146989977.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Meenal Bhagat",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "448146989977",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Meenal Bhagat",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1991-12-27",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9630708018",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Meenal Bhagat",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Jagmohan Rawat"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Tarun_Warsi_697024458441.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Tarun Warsi",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "697024458441",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Tarun Warsi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "1988-09-13",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9315312615",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Tarun Warsi",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Felicia D'Souza"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "lab_reports/report_Ovais_Sahani_532780704361.json": {
+      "format": "json",
+      "units": {
+        "@filename": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Sahani",
+              "script": "latin",
+              "channel": "filename"
+            },
+            {
+              "type": "AADHAAR",
+              "surface": "532780704361",
+              "script": "latin",
+              "channel": "filename"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/patient_name": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Sahani",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/attachment_b64": {
+          "entities": [
+            {
+              "type": "DOB",
+              "surface": "2006-01-12",
+              "script": "latin",
+              "channel": "base64"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9111069006",
+              "script": "latin",
+              "channel": "base64"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/source_path_meta": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Sahani",
+              "script": "latin",
+              "channel": "metadata"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "/result/note": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "Dr. Supriya Hegde"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "referrals/referral_log.txt": {
+      "format": "txt",
+      "units": {
+        "line0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Bedi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "prescriptions/rx_log.txt": {
+      "format": "txt",
+      "units": {
+        "block0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Yogendra Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Meenal Kalita",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Amlodipine 5mg 1-0-0"
+            },
+            {
+              "text": "Serum Creatinine: 1.3 mg/dL"
+            },
+            {
+              "text": "A09 Infectious gastroenteritis and colitis, unspecified"
+            },
+            {
+              "text": "Dr. Jagmohan Rawat"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block1": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Meenal Saluja",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Farida Saluja",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Amlodipine 5mg 1-0-0"
+            },
+            {
+              "text": "Serum Creatinine: 1.3 mg/dL"
+            },
+            {
+              "text": "N18.3 Chronic kidney disease, stage 3"
+            },
+            {
+              "text": "Dr. Imtiaz Alam"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block2": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Suraj Chauhan",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Ovais Chauhan",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Azithromycin 500mg 1-0-0 x3d"
+            },
+            {
+              "text": "HbA1c: 7.8 %"
+            },
+            {
+              "text": "J45.909 Unspecified asthma, uncomplicated"
+            },
+            {
+              "text": "Dr. Supriya Hegde"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block3": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Sahani",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Nikhat Sahani",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Metformin 500mg 1-0-1"
+            },
+            {
+              "text": "Serum Creatinine: 1.3 mg/dL"
+            },
+            {
+              "text": "I10 Essential (primary) hypertension"
+            },
+            {
+              "text": "Dr. Supriya Hegde"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block4": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Harleen Bedi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Metformin 500mg 1-0-1"
+            },
+            {
+              "text": "Haemoglobin: 10.9 g/dL"
+            },
+            {
+              "text": "I10 Essential (primary) hypertension"
+            },
+            {
+              "text": "Dr. Imtiaz Alam"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block5": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Yogendra Nair",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Yogendra Nair",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Azithromycin 500mg 1-0-0 x3d"
+            },
+            {
+              "text": "Serum Creatinine: 1.3 mg/dL"
+            },
+            {
+              "text": "A09 Infectious gastroenteritis and colitis, unspecified"
+            },
+            {
+              "text": "Dr. Jagmohan Rawat"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block6": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Deka",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Deepti Deka",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Amlodipine 5mg 1-0-0"
+            },
+            {
+              "text": "Haemoglobin: 10.9 g/dL"
+            },
+            {
+              "text": "J45.909 Unspecified asthma, uncomplicated"
+            },
+            {
+              "text": "Dr. Felicia D'Souza"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block7": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Chauhan",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Avik Chauhan",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Salbutamol inhaler 100mcg 0-0-2 PRN"
+            },
+            {
+              "text": "HbA1c: 7.8 %"
+            },
+            {
+              "text": "I10 Essential (primary) hypertension"
+            },
+            {
+              "text": "Dr. Imtiaz Alam"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block8": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Chauhan",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Tarun Chauhan",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Azithromycin 500mg 1-0-0 x3d"
+            },
+            {
+              "text": "Haemoglobin: 10.9 g/dL"
+            },
+            {
+              "text": "E11.9 Type 2 diabetes mellitus without complications"
+            },
+            {
+              "text": "Dr. Supriya Hegde"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block9": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Farida Toppo",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Komal Toppo",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Salbutamol inhaler 100mcg 0-0-2 PRN"
+            },
+            {
+              "text": "Serum Creatinine: 1.3 mg/dL"
+            },
+            {
+              "text": "I10 Essential (primary) hypertension"
+            },
+            {
+              "text": "Dr. Imtiaz Alam"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block10": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Toppo",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Avik Toppo",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Salbutamol inhaler 100mcg 0-0-2 PRN"
+            },
+            {
+              "text": "HbA1c: 7.8 %"
+            },
+            {
+              "text": "N18.3 Chronic kidney disease, stage 3"
+            },
+            {
+              "text": "Dr. Jagmohan Rawat"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block11": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Harleen Khandare",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Deepti Khandare",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Azithromycin 500mg 1-0-0 x3d"
+            },
+            {
+              "text": "Random Blood Sugar: 212 mg/dL"
+            },
+            {
+              "text": "A09 Infectious gastroenteritis and colitis, unspecified"
+            },
+            {
+              "text": "Dr. Felicia D'Souza"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block12": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Deepti Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Harleen Kalita",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Azithromycin 500mg 1-0-0 x3d"
+            },
+            {
+              "text": "Random Blood Sugar: 212 mg/dL"
+            },
+            {
+              "text": "A09 Infectious gastroenteritis and colitis, unspecified"
+            },
+            {
+              "text": "Dr. Felicia D'Souza"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        },
+        "block13": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Suraj Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "RELATIVE_NAME",
+              "surface": "Shabnam Rizvi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Azithromycin 500mg 1-0-0 x3d"
+            },
+            {
+              "text": "Serum Creatinine: 1.3 mg/dL"
+            },
+            {
+              "text": "N18.3 Chronic kidney disease, stage 3"
+            },
+            {
+              "text": "Dr. Jagmohan Rawat"
+            },
+            {
+              "text": "C/O: fever x 3 days"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "discharge/discharge_summaries.txt": {
+      "format": "txt",
+      "units": {
+        "line0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Tarun Khandare",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [
+            {
+              "text": "Parkinson's disease"
+            },
+            {
+              "text": "Down syndrome"
+            },
+            {
+              "text": "Alzheimer's"
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "registration_new_format/multi_hospital_links.csv": {
+      "format": "csv",
+      "units": {
+        "row:0": {
+          "entities": [],
+          "preserve": [],
+          "patient": "CLUSTER-E-STRONG",
+          "link": "required"
+        },
+        "row:1": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Shabnam Warsee",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "25-04-1968",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9805851342",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Madhavganj",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-STRONG",
+          "link": "required"
+        },
+        "row:2": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Aarav Sahani",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "14-03-2024",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9778967659",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Dhanauli",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-TWIN-A",
+          "link": "required"
+        },
+        "row:3": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Vihaan Sahani",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "14-03-2024",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9778967659",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Dhanauli",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-TWIN-B",
+          "link": "required"
+        },
+        "row:4": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Harbans Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "02-06-1978",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9622561160",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-PARENT",
+          "link": "required"
+        },
+        "row:5": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Kiara Kalita",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "10-09-2019",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9622561160",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-CHILD",
+          "link": "required"
+        },
+        "row:6": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Yogendra Bhagat",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "03-11-2010",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9317007271",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Dhanauli",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-WEAK-1",
+          "link": "required"
+        },
+        "row:7": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Shabnam Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "22-05-2011",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9372434314",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Dhanauli",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-WEAK-2",
+          "link": "required"
+        }
+      },
+      "expect_quarantine": false
+    },
+    "registration_new_format/hospitalA_intake.csv": {
+      "format": "csv",
+      "units": {
+        "row:0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Suraj Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "06-03-1989",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9631197308",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Bishunpur",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-COLLIDE-1",
+          "link": "required"
+        }
+      },
+      "expect_quarantine": false
+    },
+    "registration_new_format/hospitalB_intake.csv": {
+      "format": "csv",
+      "units": {
+        "row:0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Avik Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "18-11-1987",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9678462069",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "VILLAGE",
+              "surface": "Narhi",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": "CLUSTER-E-COLLIDE-2",
+          "link": "required"
+        }
+      },
+      "expect_quarantine": false
+    },
+    "registry_seed/registry_seed_patients.csv": {
+      "format": "csv",
+      "units": {
+        "row:0": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Shabnam Nair",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "18-10-1952",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9395413112",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "row:1": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Baldev Bedi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "01-03-1969",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9619540349",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "row:2": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Shabnam Bhagat",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "26-09-2020",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9046574416",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "row:3": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Nikhat Toppo",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "02-02-2022",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9814478618",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "row:4": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Harleen Sahani",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "25-02-2020",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9588204760",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "row:5": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Deepti Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "01-12-2021",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9408591343",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        },
+        "row:6": {
+          "entities": [
+            {
+              "type": "PATIENT_NAME",
+              "surface": "Ovais Rizvi",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "DOB",
+              "surface": "15-01-1960",
+              "script": "latin",
+              "channel": "content"
+            },
+            {
+              "type": "PHONE",
+              "surface": "9061880445",
+              "script": "latin",
+              "channel": "content"
+            }
+          ],
+          "preserve": [],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false
+    },
+    "corrupt/truncated_patients.csv": {
+      "format": "csv",
+      "units": {},
+      "expect_quarantine": "either",
+      "has_pii": true
+    },
+    "corrupt/malformed.json": {
+      "format": "json",
+      "units": {},
+      "expect_quarantine": "either",
+      "has_pii": true
+    },
+    "corrupt/broken_bundle.json": {
+      "format": "json",
+      "units": {},
+      "expect_quarantine": "either",
+      "has_pii": true
+    },
+    "corrupt/weird_extension.xyz": {
+      "format": "txt",
+      "units": {},
+      "expect_quarantine": "either",
+      "has_pii": true
+    },
+    "corrupt/utf16_patients.csv": {
+      "format": "csv",
+      "units": {},
+      "expect_quarantine": false,
+      "has_pii": true
+    },
+    "corrupt/cp1252_notes.txt": {
+      "format": "txt",
+      "units": {},
+      "expect_quarantine": false,
+      "has_pii": true
+    },
+    "corrupt/dup_keys.json": {
+      "format": "json",
+      "units": {},
+      "expect_quarantine": false,
+      "has_pii": true
+    },
+    "misc/hospital_policy.txt": {
+      "format": "txt",
+      "units": {
+        "line0": {
+          "entities": [],
+          "preserve": [
+            {
+              "text": "General ward visiting hours are 4pm to 6pm daily. Masks are mandatory in the ICU and NICU. Billing counter closes at 5pm. Pharmacy stock of Metformin and Amlodipine is replenished every Monday. No patient data is referenced here."
+            }
+          ],
+          "patient": null,
+          "link": null
+        }
+      },
+      "expect_quarantine": false,
+      "is_clean_control": true
+    }
+  },
+  "canaries": [
+    {
+      "surface": "Zyntherax Okonwo-Varma"
+    },
+    {
+      "surface": "9999900001"
+    },
+    {
+      "surface": "Qzylbrindt Oseivantu"
+    },
+    {
+      "surface": "9999900002"
+    }
+  ],
+  "registry": [
+    {
+      "name": "Shabnam Nair",
+      "dob": "1952-10-18",
+      "village": "Rampur Khera",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": true
+    },
+    {
+      "name": "Baldev Bedi",
+      "dob": "1969-03-01",
+      "village": "Narhi",
+      "district": "Amethi",
+      "sex": "F",
+      "is_patient": true
+    },
+    {
+      "name": "Shabnam Bhagat",
+      "dob": "2020-09-26",
+      "village": "Dhanauli",
+      "district": "Pratapgarh",
+      "sex": "F",
+      "is_patient": true
+    },
+    {
+      "name": "Nikhat Toppo",
+      "dob": "2022-02-02",
+      "village": "Dhanauli",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": true
+    },
+    {
+      "name": "Harleen Sahani",
+      "dob": "2020-02-25",
+      "village": "Bishunpur",
+      "district": "Pratapgarh",
+      "sex": "M",
+      "is_patient": true
+    },
+    {
+      "name": "Deepti Rizvi",
+      "dob": "2021-12-01",
+      "village": "Semra",
+      "district": "Amethi",
+      "sex": "M",
+      "is_patient": true
+    },
+    {
+      "name": "Ovais Rizvi",
+      "dob": "1960-01-15",
+      "village": "Madhavganj",
+      "district": "Amethi",
+      "sex": "M",
+      "is_patient": true
+    },
+    {
+      "name": "Tarun Bhagat",
+      "dob": "2002-11-11",
+      "village": "Sarai Mir",
+      "district": "Amethi",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Rustam Chauhan",
+      "dob": "1998-11-20",
+      "village": "Semra",
+      "district": "Pratapgarh",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Shabnam Saluja",
+      "dob": "2017-06-03",
+      "village": "Bishunpur",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Farida Warsi",
+      "dob": "1981-06-03",
+      "village": "Rampur Khera",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Deepti Saluja",
+      "dob": "1997-11-03",
+      "village": "Dhanauli",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Avik Bhagat",
+      "dob": "1945-05-01",
+      "village": "Madhavganj",
+      "district": "Barabanki",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Tarun Toppo",
+      "dob": "1986-09-02",
+      "village": "Semra",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Nikhat Bhagat",
+      "dob": "1974-04-04",
+      "village": "Gokulpur",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Avik Kalita",
+      "dob": "2014-05-01",
+      "village": "Narhi",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Nikhat Nair",
+      "dob": "2021-09-11",
+      "village": "Semra",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Komal Bedi",
+      "dob": "1995-07-25",
+      "village": "Narhi",
+      "district": "Amethi",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Baldev Chauhan",
+      "dob": "1948-01-19",
+      "village": "Itwa Bazar",
+      "district": "Amethi",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Farida Deka",
+      "dob": "1983-01-27",
+      "village": "Semra",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Deepti Warsi",
+      "dob": "1981-10-10",
+      "village": "Dhanauli",
+      "district": "Pratapgarh",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Suraj Khandare",
+      "dob": "1964-05-14",
+      "village": "Sarai Mir",
+      "district": "Sultanpur",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Ovais Bhagat",
+      "dob": "1982-11-18",
+      "village": "Kotra Sultanpur",
+      "district": "Amethi",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Ovais Chauhan",
+      "dob": "2016-06-18",
+      "village": "Dhanauli",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Rustam Rizvi",
+      "dob": "2012-05-09",
+      "village": "Sarai Mir",
+      "district": "Sultanpur",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Harleen Toppo",
+      "dob": "2002-05-11",
+      "village": "Kotra Sultanpur",
+      "district": "Pratapgarh",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Pallavi Nair",
+      "dob": "1993-03-02",
+      "village": "Sarai Mir",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Baldev Nair",
+      "dob": "2011-09-06",
+      "village": "Gokulpur",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Meenal Kalita",
+      "dob": "2020-03-09",
+      "village": "Sarai Mir",
+      "district": "Pratapgarh",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Shabnam Kalita",
+      "dob": "1989-04-13",
+      "village": "Madhavganj",
+      "district": "Amethi",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Nikhat Rizvi",
+      "dob": "1979-08-14",
+      "village": "Semra",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Farida Bhagat",
+      "dob": "2011-07-28",
+      "village": "Kotra Sultanpur",
+      "district": "Pratapgarh",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Komal Kalita",
+      "dob": "1977-08-22",
+      "village": "Sarai Mir",
+      "district": "Pratapgarh",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Harleen Sahani",
+      "dob": "2011-10-28",
+      "village": "Sarai Mir",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Deepti Khandare",
+      "dob": "1988-09-25",
+      "village": "Rampur Khera",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Farida Sahani",
+      "dob": "1964-08-13",
+      "village": "Madhavganj",
+      "district": "Amethi",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Avik Toppo",
+      "dob": "1984-10-12",
+      "village": "Madhavganj",
+      "district": "Pratapgarh",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Harleen Khandare",
+      "dob": "2006-02-15",
+      "village": "Itwa Bazar",
+      "district": "Pratapgarh",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Yogendra Bhagat",
+      "dob": "1987-11-04",
+      "village": "Rampur Khera",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Sarika Toppo",
+      "dob": "1951-08-28",
+      "village": "Sarai Mir",
+      "district": "Amethi",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Tarun Toppo",
+      "dob": "1996-12-04",
+      "village": "Gokulpur",
+      "district": "Barabanki",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Harleen Kalita",
+      "dob": "1952-05-25",
+      "village": "Kotra Sultanpur",
+      "district": "Pratapgarh",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Avik Bhagat",
+      "dob": "1963-06-03",
+      "village": "Madhavganj",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Ovais Deka",
+      "dob": "2003-08-21",
+      "village": "Gokulpur",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Komal Deka",
+      "dob": "1992-07-23",
+      "village": "Dhanauli",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Yogendra Saluja",
+      "dob": "1951-04-01",
+      "village": "Gokulpur",
+      "district": "Sultanpur",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Komal Saluja",
+      "dob": "2006-10-23",
+      "village": "Gokulpur",
+      "district": "Sultanpur",
+      "sex": "M",
+      "is_patient": false
+    },
+    {
+      "name": "Baldev Khandare",
+      "dob": "1981-07-15",
+      "village": "Itwa Bazar",
+      "district": "Amethi",
+      "sex": "F",
+      "is_patient": false
+    },
+    {
+      "name": "Sarika Deka",
+      "dob": "2015-09-11",
+      "village": "Sarai Mir",
+      "district": "Barabanki",
+      "sex": "M",
+      "is_patient": false
+    }
+  ],
+  "known_facts": [
+    {
+      "fact": "visit_date",
+      "patient_name": "Shabnam Nair",
+      "value": "2026-10-04",
+      "village": "Rampur Khera",
+      "sex": "M"
+    },
+    {
+      "fact": "length_of_stay_days",
+      "patient_name": "Shabnam Nair",
+      "value": 9
+    },
+    {
+      "fact": "visit_date",
+      "patient_name": "Baldev Bedi",
+      "value": "2026-01-20",
+      "village": "Narhi",
+      "sex": "F"
+    },
+    {
+      "fact": "length_of_stay_days",
+      "patient_name": "Baldev Bedi",
+      "value": 9
+    },
+    {
+      "fact": "visit_date",
+      "patient_name": "Shabnam Bhagat",
+      "value": "2026-07-19",
+      "village": "Dhanauli",
+      "sex": "F"
+    },
+    {
+      "fact": "length_of_stay_days",
+      "patient_name": "Shabnam Bhagat",
+      "value": 6
+    },
+    {
+      "fact": "visit_date",
+      "patient_name": "Nikhat Toppo",
+      "value": "2026-11-16",
+      "village": "Dhanauli",
+      "sex": "M"
+    },
+    {
+      "fact": "length_of_stay_days",
+      "patient_name": "Nikhat Toppo",
+      "value": 7
+    },
+    {
+      "fact": "visit_date",
+      "patient_name": "Harleen Sahani",
+      "value": "2026-03-26",
+      "village": "Bishunpur",
+      "sex": "M"
+    },
+    {
+      "fact": "length_of_stay_days",
+      "patient_name": "Harleen Sahani",
+      "value": 4
+    },
+    {
+      "fact": "visit_date",
+      "patient_name": "Deepti Rizvi",
+      "value": "2026-08-14",
+      "village": "Semra",
+      "sex": "M"
+    },
+    {
+      "fact": "length_of_stay_days",
+      "patient_name": "Deepti Rizvi",
+      "value": 5
+    },
+    {
+      "fact": "visit_date",
+      "patient_name": "Ovais Rizvi",
+      "value": "2026-09-21",
+      "village": "Madhavganj",
+      "sex": "M"
+    },
+    {
+      "fact": "length_of_stay_days",
+      "patient_name": "Ovais Rizvi",
+      "value": 4
+    }
+  ]
+}

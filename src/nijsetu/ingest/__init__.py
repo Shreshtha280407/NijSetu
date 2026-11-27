@@ -73,7 +73,7 @@ def _process_file(df: DiscoveredFile, config: AppConfig, result: IngestResult) -
         return
 
     try:
-        if fmt in ("csv", "tsv"):
+        if fmt in ("csv", "tsv", "psv"):
             parsed = parse_csv(raw, rel, df.file_no, fmt)
             result.file_records.append(parsed.file_record)
             for record_no, row_fields in enumerate(parsed.rows):

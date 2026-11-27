@@ -462,14 +462,14 @@ def run_sanitize(
             # A synthetic, file_no-based name -- never the original relative
             # path/filename, which could itself carry PII (a patient name or
             # identifier used as a filename, an identifying directory name).
-            safe_ext = {"csv": "csv", "tsv": "tsv", "json": "json", "txt": "txt", "fhir": "json"}[fr.format]
+            safe_ext = {"csv": "csv", "tsv": "tsv", "psv": "txt", "json": "json", "txt": "txt", "fhir": "json"}[fr.format]
             out_path = staging.public / "released" / f"file_{fr.file_no}.{safe_ext}"
             out_path.parent.mkdir(parents=True, exist_ok=True)
 
-            if fr.format in ("csv", "tsv"):
+            if fr.format in ("csv", "tsv", "psv"):
                 raw = raw_bytes_by_path.get(fr.file_path, b"")
                 text, _enc = detect_and_decode(raw) if raw else ("", "utf-8")
-                delimiter = "\t" if fr.format == "tsv" else ","
+                delimiter = {"tsv": "\t", "psv": "|"}.get(fr.format, ",")
                 # A real csv.reader over the whole text (not a physical-line
                 # split) so a quoted multi-line cell's embedded newline never
                 # desynchronizes a row index from its logical record.
