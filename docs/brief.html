@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>NijSetu Project Brief</title>
+<style>
+  @page { size: A4; margin: 10mm 12mm; }
+  body { font-family: "Liberation Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.2; color: #111; }
+  h1 { font-size: 14pt; margin: 0 0 2pt 0; }
+  h2 { font-size: 11pt; margin: 6pt 0 2pt 0; border-bottom: 1px solid #999; padding-bottom: 1pt; }
+  .meta { font-size: 9pt; color: #333; margin-bottom: 4pt; }
+  p { margin: 2pt 0; }
+  ul { margin: 1pt 0 3pt 0; padding-left: 13pt; }
+  li { margin: 1pt 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 2pt 0 4pt 0; }
+  th, td { border: 1px solid #bbb; padding: 2pt 3.5pt; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  pre { background: #f3f3f3; border: 1px solid #ccc; padding: 4pt 5pt; font-size: 8pt; line-height: 1.15;
+        white-space: pre-wrap; margin: 2pt 0 4pt 0; }
+  code { font-family: "Liberation Mono", monospace; font-size: 8.5pt; }
+  .fillin { background: #fff3cd; }
+  .pagebreak { page-break-before: always; }
+  .note { font-size: 8.5pt; color: #444; }
+</style>
+</head>
+<body>
+
+<h1>NijSetu: a context-aware privacy firewall for multilingual hospital records</h1>
+<div class="meta"><b>Track 3 &middot; Secret Wards</b> &middot; Members: <span class="fillin">&lt;fill in: team member names&gt;</span> &middot; Repo: https://github.com/Shreshtha280407/NijSetu</div>
+
+<h2>1. In one paragraph</h2>
+<p>NijSetu ingests CSV/TSV/JSON/FHIR&nbsp;R4/text exports from four fictional hospital systems &mdash;
+mixing English, Devanagari Hindi and Hinglish in the same sentence &mdash; strips every piece of
+personal data while keeping every medical value exactly intact, links the same patient across
+languages, files and hospitals with keyed-HMAC pseudonyms, and <i>quantifies</i> the privacy it
+bought: a real registry-based re-identification measurement ships with the release, not just a
+claim of &ldquo;anonymised.&rdquo;</p>
+
+<h2>2. Architecture</h2>
+<pre>input/ (CSV/TSV/JSON/FHIR/TXT, 4 encodings)
+  -&gt; Ingestion        format/encoding detection; malformed files quarantined, never passed through
+  -&gt; Detection         rules + gazetteer + Devanagari transliteration + context scoring
+                       (per script: latin / deva / hinglish)
+  -&gt; Identity linkage  blocking -&gt; fuzzy/phonetic/cross-script match -&gt; clustering;
+                       evidence-gated: no shared strong ID or unique (name+clue) -&gt; no link
+  -&gt; Privacy layer     per-patient HMAC date shift, age banding, geography generalisation,
+                       small-cohort suppression
+  -&gt; Export            sanitized/, report.json, records.jsonl
+         \-&gt; Security layer wraps every raw/working artifact: AES-256-GCM at rest,
+             fail-closed quarantine, PII-free logs, RAKSHA_SECRET never written</pre>
+
+<h2>3. How each part works</h2>
+<ul>
+<li><b>Ingestion:</b> format- and encoding-aware adapters (UTF-8 / UTF-8-BOM / UTF-16 / cp1252) for
+CSV/TSV/JSON/FHIR&nbsp;R4 Bundles/free text; anything truncated, malformed or unsupported is
+quarantined, never copied through half-cleaned.</li>
+<li><b>Detection:</b> layered rules + a bundled name/place gazetteer + Devanagari normalisation and
+transliteration + a scoring step that resolves the &ldquo;meaning traps&rdquo; (<code>C/O &lt;relative&gt;</code>
+vs. <code>C/O &lt;complaint&gt;</code>, <code>Dr. Ramesh</code> vs. relative <code>Ramesh</code>, <code>1-0-1</code>
+dose vs. phone/ID) rather than one script-blind regex pass.</li>
+<li><b>Linkage &amp; pseudonyms:</b> blocking keys plus fuzzy/phonetic/cross-script comparison cluster
+records into patients; a cluster forms only on a shared strong identifier or a (name + second clue)
+combination unique in the dataset &mdash; ambiguous evidence is left unlinked by design, since a false
+merge is scored worse than a missed link. IDs are issued via keyed HMAC (<code>RAKSHA_SECRET</code>),
+never plain hashing.</li>
+<li><b>Privacy layer:</b> date shifts are per-patient (HMAC-keyed, never a global offset &mdash; a global
+shift protects nobody once two dates are recovered), age is banded, geography is generalised
+(village/house/landmark suppressed, district retained), and small cohorts below the k-threshold
+escalate to coarser bands automatically.</li>
+<li><b>Security:</b> AES-256-GCM (the <code>cryptography</code> package) protects NijSetu&rsquo;s own
+raw/working files at rest &mdash; the dashboard&rsquo;s uploaded files and the CLI&rsquo;s private analysis
+artifact &mdash; each under a fresh in-memory key, domain-separated from the HMAC pseudonym key.
+Decrypted bytes are staged only in a directory verified (against <code>/proc/mounts</code>, not
+assumed) to be tmpfs, never on persistent disk. Every error is a reason code, never a raw
+traceback or the secret.</li>
+</ul>
+
+<h2>4. USP</h2>
+<ul>
+<li><b>Cross-script identity matching</b>, not exact-string lookups: the same patient is linked as
+&ldquo;Mohammad Arif&rdquo; / &ldquo;&#2350;&#2379;&#2361;&#2350;&#2381;&#2350;&#2342; &#2310;&#2352;&#2367;&#2398;&rdquo; / &ldquo;Md. Arif&rdquo; / &ldquo;Arif sahab&rdquo; through
+transliteration-aware blocking, not a name list.</li>
+<li><b>Context traps handled explicitly</b> &mdash; relative vs. doctor, complaint vs. care-of, dose vs.
+phone/ID &mdash; instead of one regex pass that cannot tell them apart.</li>
+<li><b>Measured, not assumed, privacy&ndash;utility trade-offs:</b> a repeatable harness
+(<code>scripts/policy_tradeoff.py</code>) reruns the real pipeline under each policy knob and reports
+what it costs in clinical utility and what it buys in quasi-identifier uniqueness against an actual
+registry (&sect;5).</li>
+<li><b>Tested for generalisation, not just the practice set:</b> an independently authored corpus
+sharing no surface forms with the practice data (new hospitals, header spellings, ID prefixes,
+encodings) is scored against its own answer key.</li>
+</ul>
+
+<h2>5. Privacy&ndash;utility trade-off (measured on the practice data)</h2>
+<table>
+<tr><th>Measure</th><th>Value</th></tr>
+<tr><td>personal data leaked (overall / Latin / Devanagari / Hinglish)</td><td>0.0% / 0.0% / 0.0% / 0.0%</td></tr>
+<tr><td>planted canaries found</td><td>0 of 4</td></tr>
+<tr><td>medical values kept</td><td>97.3% (4,223 / 4,339)</td></tr>
+<tr><td>linking precision / recall / F0.5</td><td>1.00 / 0.74 / 0.93 &nbsp;(0 false merges)</td></tr>
+<tr><td>raw/unsupported files copied through unchanged</td><td>0</td></tr>
+<tr><td>re-identification risk, shipped &ldquo;balanced&rdquo; policy</td>
+    <td>4 of 788 released records (0.5%) land in a (district &times; 10-yr age band &times; gender) cohort
+        matching exactly <b>one</b> person in a 240-person practice registry; 5 (0.6%) match fewer than three</td></tr>
+<tr><td>same measurement, geography suppressed entirely</td>
+    <td>0 of 788 &mdash; at a clinical-utility cost of 97.3%&rarr;included for comparison, not shipped</td></tr>
+<tr><td>generalisation to an independently authored, never-tuned-on corpus</td><td>0 / 176 leaks; 35 / 35 clinical values retained</td></tr>
+<tr><td>run time / peak memory (200-file practice set)</td><td>9.3 s / 54.5 MB</td></tr>
+</table>
+<p>The shipped &ldquo;balanced&rdquo; policy (10-year age bands, district retained, &plusmn;30-day
+per-patient date shift) keeps 97.3% of clinical utility while leaving only 4 of 788 released records
+singly-identifiable against the registry on quasi-identifiers alone &mdash; the residual is the
+<b>Re-identification Trap</b>: rare (district, age-band, gender) combinations that survive even
+after date shifting. Suppressing geography entirely removes those 4&ndash;5 records but is not the
+shipped default, since it is a district-wide utility cost paid to fix a handful of rare rows; the
+honest alternative &mdash; suppressing only the rare cohorts &mdash; is exactly the k-threshold escalation
+NijSetu already runs, and &sect;6 states where it still falls short.</p>
+
+<h2>6. Known limitations</h2>
+<ul>
+<li><b>Linking recall is 0.74 by design.</b> Roughly a quarter of truly-linkable records are left
+unlinked when the evidence (name + one clue) is not unique in the dataset, because a missed link
+costs less than a false merge. Some genuinely-same-patient records across languages will therefore
+surface under separate pseudonyms rather than be wrongly merged.</li>
+<li><b>A handful of rare cohorts remain singly-identifiable.</b> The automatic small-cohort escalation
+(k-threshold&nbsp;=&nbsp;3) did not fully close the gap the external registry measurement found (&sect;5):
+4 of 788 released records still land in a unique (district, age-band, gender) cohort. Closing it
+needs suppression of geography on those specific rare rows, not a dataset-wide policy change.</li>
+<li><b>Practice-tuned rules lose ground on genuinely novel formats.</b> The organizer&rsquo;s own
+calibration table shows even a strong reference implementation loses real points on the
+unseen-format round; NijSetu&rsquo;s heldout-corpus test (0/176 leaks) is independent evidence of
+generalisation, not proof the hidden &ldquo;never seen&rdquo; round will score identically.</li>
+<li><b>This brief&rsquo;s measurements are practice-only.</b> They come from <code>dev/input</code>
+(200 files, 48 patients) with the organizer&rsquo;s own <code>check_dev.py</code> and this repo&rsquo;s
+<code>policy_tradeoff.py</code> against a 240-person registry &mdash; not the hidden evaluation
+datasets, which are larger and have new patients.</li>
+</ul>
+
+</body>
+</html>

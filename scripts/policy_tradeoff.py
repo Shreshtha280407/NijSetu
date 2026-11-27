@@ -28,7 +28,7 @@ from collections import Counter
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-TRUTH = Path("/home/Shreshtha/documents/Secret-Wards-ToolKit/dev/truth/truth.json")
+TRUTH = REPO.parent / "Secret-Wards-ToolKit" / "dev" / "truth" / "truth.json"
 
 # (label, policy override written to a JSON file consumed by --policy-file)
 VARIANTS: list[tuple[str, dict]] = [

@@ -317,7 +317,7 @@ The latest full engine evaluation narrative is recorded in the **[Gate 0.5 repor
 
 The [experiment ledger](docs/gate05-experiments.md) records rejected approaches, regressions and privacy/utility tradeoffs. Historical Phase 1, Phase 2 and Gate 0 reports describe earlier states; Gate 0.5 corrects two Gate 0 accounting figures. Their snapshot notices distinguish historical test counts, scope and working-tree statements from the current implementation. Practice-corpus scores in the Gate 0.5 table were recorded during that phase; the organizer-toolkit and held-out-corpus numbers above this paragraph are this session's fresh re-run and match them, confirming the result reproduces rather than regressing.
 
-**Still outstanding, not covered by any check above:** the 2-page Project Brief PDF required for submission does not exist yet in this repository (`check_submission.py`'s "Project Brief PDF found" is a false positive matching a corrupt test fixture, `.pdf` extension only — see the Gate 0.5 report's note on this). Writing it is unique team content outside the scope of an automated verification pass.
+**Still outstanding, not covered by any check above:** a draft 2-page Project Brief PDF is at [`docs/brief.pdf`](docs/brief.pdf) (source: [`docs/brief.md`](docs/brief.md) / [`docs/brief.html`](docs/brief.html)), with every measured number pulled from this session's own `check_dev.py` and `scripts/policy_tradeoff.py` runs — but the team member names on its byline are still a placeholder; only the actual team can fill those in before submission.
 
 <details>
 <summary><b>Reproduce the checks and synthetic-corpus evaluation</b></summary>
