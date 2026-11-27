@@ -67,7 +67,7 @@ _PII_PATH_ROLES = frozenset({
     FieldRole.PATIENT_NAME, FieldRole.RELATIVE_NAME, FieldRole.PATIENT_IDENTIFIER,
     FieldRole.CONTACT, FieldRole.FINE_ADDRESS,
 })
-_FORMAT_EXT = {"csv": "csv", "tsv": "tsv", "json": "json", "txt": "txt", "fhir": "json"}
+_FORMAT_EXT = {"csv": "csv", "tsv": "tsv", "psv": "txt", "json": "json", "txt": "txt", "fhir": "json"}
 
 # Best-effort action-rule -> organizer entity-type label, for report.json's
 # optional "entities" breakdown. Never fabricated: only rules sanitize.py

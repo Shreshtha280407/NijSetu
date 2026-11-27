@@ -155,6 +155,17 @@ def test_csv_empty_file():
     assert result.file_record.record_count == 0
 
 
+def test_csv_bare_trailing_date_format_hint_header_resolves_to_dob():
+    # "DOB (MM/DD/YYYY)" already resolves via the parenthetical-stripping
+    # pass; an unseen hospital spelling the same hint without parentheses
+    # ("DOB_YYYYMMDD") must resolve identically, not fall through to OTHER
+    # (= RETAIN, i.e. the literal birth date published verbatim).
+    raw = b"UHID,DOB_YYYYMMDD\nUH1,19901203\n"
+    result = parse_csv(raw, "r.csv", 0, "csv")
+    dob_field = next(f for f in result.rows[0] if f.source.path == "DOB_YYYYMMDD")
+    assert dob_field.role == FieldRole.DATE
+
+
 # --- JSON ----------------------------------------------------------------------
 
 def test_json_object_record():

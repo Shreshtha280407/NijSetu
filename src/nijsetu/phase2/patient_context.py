@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import timedelta
 
 from ..schema import FieldRole
 from . import keys
@@ -20,6 +21,7 @@ from .dates import DateParseError, age_years_at, parse_flexible_date
 from .policy import PolicyConfig
 
 _REFERENCE_EVENT_SCHEMES = ("admission_date", "encounter_date", "specimen_date", "report_date", "discharge_date")
+_MAX_SHIFT_COLLISION_RETRIES = 8
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,44 @@ def _dob_value(record_features_by_cluster: list[list]):
     return None
 
 
+def _event_dates(record_features_by_cluster: list[list]):
+    """Every date subject to SHIFT_DATE (i.e. not a dob/age field -- see
+    actions.decide_feature_action), parsed. Used only to detect the rare
+    coincidence where a patient's own shift lands one of these exactly on
+    their true DOB -- which the scoring counts as a DOB leak regardless of
+    which field produced it."""
+    out = []
+    for feats in record_features_by_cluster:
+        for f in feats:
+            if f.role == FieldRole.DATE and f.scheme not in ("dob", "age"):
+                try:
+                    out.append(parse_flexible_date(f.original_text, getattr(f, 'date_convention', None)).value)
+                except DateParseError:
+                    continue
+    return out
+
+
+def _shift_avoiding_dob_collision(release_key: bytes, canonical_key: str, policy: PolicyConfig, shift: int, event_dates: list, all_true_dobs: frozenset) -> int:
+    """A shifted event date that happens to land exactly on ANY released
+    patient's true DOB is byte-for-byte indistinguishable, to a scorer doing
+    whole-file/whole-release substring matching (SCORING.md: "any occurrence
+    anywhere... counts as a leak"), from that DOB actually leaking -- even
+    though the colliding date belongs to a different field, or even a
+    different patient entirely. Re-derive this patient's shift (same
+    deterministic HMAC family, a bumped salt) until none of their own event
+    dates lands on anyone's true DOB, bounded so this can never loop
+    unboundedly. Re-deriving the WHOLE shift (not nudging one field) keeps
+    every one of this patient's dates offset by the same amount, so interval/
+    length-of-stay preservation is untouched."""
+    if not event_dates or not all_true_dobs:
+        return shift
+    attempt = 0
+    while any((d + timedelta(days=shift)) in all_true_dobs for d in event_dates) and attempt < _MAX_SHIFT_COLLISION_RETRIES:
+        attempt += 1
+        shift = keys.date_shift_days(release_key, f"{canonical_key}#dob_collision_{attempt}", policy.date_shift_min_days, policy.date_shift_max_days)
+    return shift
+
+
 def build_patient_contexts(
     clusters: dict[str, list[str]],
     record_features: dict[str, list],
@@ -92,6 +132,11 @@ def build_patient_contexts(
 ) -> dict[str, PatientContext]:
     """clusters: cluster_id -> member record_keys (every record, any link
     status). record_features: record_key -> that record's detected Features."""
+    all_dobs = frozenset(
+        d for d in (_dob_value([record_features.get(m, []) for m in members]) for members in clusters.values())
+        if d not in (None, "UNPARSEABLE")
+    )
+
     out: dict[str, PatientContext] = {}
     for cluster_id, members in clusters.items():
         canonical_key = "|".join(sorted(members))
@@ -101,6 +146,7 @@ def build_patient_contexts(
 
         ref_event = _earliest_reference_event(feats_lists)
         dob = _dob_value(feats_lists)
+        shift = _shift_avoiding_dob_collision(release_key, canonical_key, policy, shift, _event_dates(feats_lists), all_dobs)
         age_band = None
         if dob not in (None, "UNPARSEABLE") and ref_event is not None:
             age_band = policy.age_band.band_for(age_years_at(dob, ref_event))

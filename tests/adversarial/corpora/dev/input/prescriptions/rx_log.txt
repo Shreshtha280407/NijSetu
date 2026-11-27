@@ -1,0 +1,63 @@
+Name: Rustam Bhagat   Age: 35/M   Reg No: RX62289
+C/O: fever x 3 days, H/O: Type 2 diabetes mellitus without complications
+Dx: E11.9 Type 2 diabetes mellitus without complications
+Rx: Azithromycin 500mg 1-0-0 x3d
+HbA1c: 7.8 %
+Seen by Dr. Supriya Hegde, Ward: Paediatric
+C/O Shabnam Bhagat (attendant)
+
+Name: Baldev Khandare   Age: 26/M   Reg No: RX49221
+C/O: fever x 3 days, H/O: Infectious gastroenteritis and colitis, unspecified
+Dx: A09 Infectious gastroenteritis and colitis, unspecified
+Rx: Azithromycin 500mg 1-0-0 x3d
+Haemoglobin: 10.9 g/dL
+Seen by Dr. Jagmohan Rawat, Ward: Male Medical
+C/O Nikhat Khandare (attendant)
+
+Name: Baldev Khandare   Age: 49/M   Reg No: RX46116
+C/O: fever x 3 days, H/O: Unspecified asthma, uncomplicated
+Dx: J45.909 Unspecified asthma, uncomplicated
+Rx: Amlodipine 5mg 1-0-0
+Serum Creatinine: 1.3 mg/dL
+Seen by Dr. Jagmohan Rawat, Ward: ICU
+C/O Nikhat Khandare (attendant)
+
+Name: Shabnam Bhagat   Age: 69/M   Reg No: RX82987
+C/O: fever x 3 days, H/O: Unspecified asthma, uncomplicated
+Dx: J45.909 Unspecified asthma, uncomplicated
+Rx: Metformin 500mg 1-0-1
+Haemoglobin: 10.9 g/dL
+Seen by Dr. Supriya Hegde, Ward: Male Medical
+C/O Shabnam Bhagat (attendant)
+
+Name: Komal Toppo   Age: 37/F   Reg No: RX22635
+C/O: fever x 3 days, H/O: Chronic kidney disease, stage 3
+Dx: N18.3 Chronic kidney disease, stage 3
+Rx: Amlodipine 5mg 1-0-0
+Haemoglobin: 10.9 g/dL
+Seen by Dr. Jagmohan Rawat, Ward: Male Medical
+C/O Yogendra Toppo (attendant)
+
+Name: Ovais Bhagat   Age: 36/F   Reg No: RX13446
+C/O: fever x 3 days, H/O: Unspecified asthma, uncomplicated
+Dx: J45.909 Unspecified asthma, uncomplicated
+Rx: Amlodipine 5mg 1-0-0
+HbA1c: 7.8 %
+Seen by Dr. Jagmohan Rawat, Ward: Male Medical
+C/O Avik Bhagat (attendant)
+
+Name: Yogendra Sahani   Age: 59/F   Reg No: RX39428
+C/O: fever x 3 days, H/O: Chronic kidney disease, stage 3
+Dx: N18.3 Chronic kidney disease, stage 3
+Rx: Salbutamol inhaler 100mcg 0-0-2 PRN
+HbA1c: 7.8 %
+Seen by Dr. Imtiaz Alam, Ward: Paediatric
+C/O Pallavi Sahani (attendant)
+
+Name: Baldev Warsi   Age: 66/M   Reg No: RX70457
+C/O: fever x 3 days, H/O: Infectious gastroenteritis and colitis, unspecified
+Dx: A09 Infectious gastroenteritis and colitis, unspecified
+Rx: Metformin 500mg 1-0-1
+Haemoglobin: 10.9 g/dL
+Seen by Dr. Supriya Hegde, Ward: Paediatric
+C/O Farida Warsi (attendant)

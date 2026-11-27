@@ -1,0 +1,5 @@
+ID|ID|NAME|NAME|DOB_YYYYMMDD|VILLAGE
+LEG290849|LEG290849|Deepti Nair|Deepti Nair|19971202|Gokulpur
+LEG533752|LEG533752|Farida Sahani|Farida Sahani|19540205|Dhanauli
+LEG210714|LEG210714|Pallavi Saluja|Pallavi Saluja|19640627|Semra
+LEG781368|LEG781368|Shabnam Kalita|Shabnam Kalita|20061111|Narhi

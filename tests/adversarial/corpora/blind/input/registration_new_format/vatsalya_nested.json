@@ -1,0 +1,117 @@
+{
+  "export_batch": [
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Baldev Toppo",
+            "dob": "2020-03-15"
+          },
+          "contact": {
+            "mobile": 9738152163
+          }
+        },
+        "facility": "Grameen Swasthya Kendra"
+      },
+      "meta": {}
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Deepti Kalita",
+            "dob": "1948-06-26"
+          },
+          "contact": {
+            "mobile": "9484032762"
+          }
+        },
+        "facility": "Grameen Swasthya Kendra"
+      },
+      "meta": {
+        "village": "Kotra Sultanpur"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Komal Bedi",
+            "dob": "1993-07-15"
+          },
+          "contact": {
+            "mobile": 9260907587
+          }
+        },
+        "facility": "Vatsalya Mother & Child Care"
+      },
+      "meta": {
+        "village": "Sarai Mir"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Nikhat Rizvi",
+            "dob": "1948-11-20"
+          },
+          "contact": {
+            "mobile": "9148596705"
+          }
+        },
+        "facility": "Vatsalya Mother & Child Care"
+      },
+      "meta": {}
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Harleen Bhagat",
+            "dob": "1959-05-05"
+          },
+          "contact": {
+            "mobile": 9907911521
+          }
+        },
+        "facility": "Vatsalya Mother & Child Care"
+      },
+      "meta": {
+        "village": "Sarai Mir"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Sarika Bhagat",
+            "dob": "2021-09-25"
+          },
+          "contact": {
+            "mobile": "9420235079"
+          }
+        },
+        "facility": "Vatsalya Mother & Child Care"
+      },
+      "meta": {
+        "village": "Madhavganj"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Komal Sahani",
+            "dob": "1994-02-02"
+          },
+          "contact": {
+            "mobile": 9296992537
+          }
+        },
+        "facility": "Arogya Nilayam"
+      },
+      "meta": {}
+    }
+  ]
+}

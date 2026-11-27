@@ -1,0 +1,63 @@
+Name: Yogendra Rizvi   Age: 73/M   Reg No: RX75801
+C/O: fever x 3 days, H/O: Essential (primary) hypertension
+Dx: I10 Essential (primary) hypertension
+Rx: Metformin 500mg 1-0-1
+HbA1c: 7.8 %
+Seen by Dr. Felicia D'Souza, Ward: Male Medical
+C/O Shabnam Rizvi (attendant)
+
+Name: Meenal Khandare   Age: 34/M   Reg No: RX29611
+C/O: fever x 3 days, H/O: Unspecified asthma, uncomplicated
+Dx: J45.909 Unspecified asthma, uncomplicated
+Rx: Azithromycin 500mg 1-0-0 x3d
+HbA1c: 7.8 %
+Seen by Dr. Felicia D'Souza, Ward: ICU
+C/O Nikhat Khandare (attendant)
+
+Name: Deepti Warsi   Age: 43/F   Reg No: RX94503
+C/O: fever x 3 days, H/O: Chronic kidney disease, stage 3
+Dx: N18.3 Chronic kidney disease, stage 3
+Rx: Amlodipine 5mg 1-0-0
+Random Blood Sugar: 212 mg/dL
+Seen by Dr. Supriya Hegde, Ward: Paediatric
+C/O Komal Warsi (attendant)
+
+Name: Pallavi Kalita   Age: 35/M   Reg No: RX92360
+C/O: fever x 3 days, H/O: Infectious gastroenteritis and colitis, unspecified
+Dx: A09 Infectious gastroenteritis and colitis, unspecified
+Rx: Salbutamol inhaler 100mcg 0-0-2 PRN
+Random Blood Sugar: 212 mg/dL
+Seen by Dr. Felicia D'Souza, Ward: Male Medical
+C/O Yogendra Kalita (attendant)
+
+Name: Nikhat Khandare   Age: 27/M   Reg No: RX55394
+C/O: fever x 3 days, H/O: Unspecified asthma, uncomplicated
+Dx: J45.909 Unspecified asthma, uncomplicated
+Rx: Amlodipine 5mg 1-0-0
+HbA1c: 7.8 %
+Seen by Dr. Jagmohan Rawat, Ward: ICU
+C/O Shabnam Khandare (attendant)
+
+Name: Suraj Bhagat   Age: 59/F   Reg No: RX34274
+C/O: fever x 3 days, H/O: Infectious gastroenteritis and colitis, unspecified
+Dx: A09 Infectious gastroenteritis and colitis, unspecified
+Rx: Salbutamol inhaler 100mcg 0-0-2 PRN
+HbA1c: 7.8 %
+Seen by Dr. Supriya Hegde, Ward: ICU
+C/O Nikhat Bhagat (attendant)
+
+Name: Ovais Deka   Age: 28/F   Reg No: RX79063
+C/O: fever x 3 days, H/O: Chronic kidney disease, stage 3
+Dx: N18.3 Chronic kidney disease, stage 3
+Rx: Salbutamol inhaler 100mcg 0-0-2 PRN
+Serum Creatinine: 1.3 mg/dL
+Seen by Dr. Supriya Hegde, Ward: Male Medical
+C/O Yogendra Deka (attendant)
+
+Name: Suraj Toppo   Age: 33/F   Reg No: RX60769
+C/O: fever x 3 days, H/O: Unspecified asthma, uncomplicated
+Dx: J45.909 Unspecified asthma, uncomplicated
+Rx: Salbutamol inhaler 100mcg 0-0-2 PRN
+Haemoglobin: 10.9 g/dL
+Seen by Dr. Jagmohan Rawat, Ward: ICU
+C/O Yogendra Toppo (attendant)

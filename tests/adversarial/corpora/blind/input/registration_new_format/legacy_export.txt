@@ -1,0 +1,8 @@
+ID|ID|NAME|NAME|DOB_YYYYMMDD|VILLAGE
+LEG562268|LEG562268|Avik Bedi|Avik Bedi|19931224|Narhi
+LEG490738|LEG490738|Nikhat Rizvi|Nikhat Rizvi|20091023|Kotra Sultanpur
+LEG377156|LEG377156|Farida Rizvi|Farida Rizvi|19910511|Bishunpur
+LEG823413|LEG823413|Baldev Rizvi|Baldev Rizvi|20240611|Madhavganj
+LEG336238|LEG336238|Deepti Deka|Deepti Deka|19600323|Itwa Bazar
+LEG116175|LEG116175|Yogendra Nair|Yogendra Nair|19880427|Madhavganj
+LEG587467|LEG587467|Pallavi Bhagat|Pallavi Bhagat|19660418|Narhi

@@ -1,0 +1,68 @@
+{
+  "export_batch": [
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Nikhat Kalita",
+            "dob": "2012-06-27"
+          },
+          "contact": {
+            "mobile": 9216684834
+          }
+        },
+        "facility": "Grameen Swasthya Kendra"
+      },
+      "meta": {}
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Deepti Khandare",
+            "dob": "1989-12-20"
+          },
+          "contact": {
+            "mobile": "9580789945"
+          }
+        },
+        "facility": "Arogya Nilayam"
+      },
+      "meta": {
+        "village": "Gokulpur"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Rustam Deka",
+            "dob": "1970-12-09"
+          },
+          "contact": {
+            "mobile": 9578599368
+          }
+        },
+        "facility": "Arogya Nilayam"
+      },
+      "meta": {
+        "village": "Narhi"
+      }
+    },
+    {
+      "visit": {
+        "patient": {
+          "identity": {
+            "full_name": "Sarika Chauhan",
+            "dob": "1980-12-04"
+          },
+          "contact": {
+            "mobile": "9810293540"
+          }
+        },
+        "facility": "Vatsalya Mother & Child Care"
+      },
+      "meta": {}
+    }
+  ]
+}
