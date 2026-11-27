@@ -202,6 +202,7 @@ class WorkspaceService:
                 'id': run_id, 'state': 'queued', 'progress': 0, 'stage': 'Queued for engine',
                 'policy': policy, 'demo': demo, 'reviewed': False, 'file_count': len(files),
                 '_created': now, '_file_names': list(files.keys()),
+                '_upload_bytes': sum(len(d) for d in files.values()),
             }
             config = AppConfig(source_system_map=tuple((name, 'DEMO_HOSPITAL' if demo else source) for name in files) if demo or source else ())
             self.executor.submit(self._process, run_id, config)
@@ -230,7 +231,12 @@ class WorkspaceService:
             # it), not merely assumed to be. No fallback to plain disk --
             # if no RAM-backed storage is available, the run fails closed
             # instead of silently writing plaintext to persistent storage.
-            ram_root = ram_backed_tempdir(min_free_bytes=MAX_BYTES * 4)
+            # Required space scales with THIS run's actual upload size
+            # (headroom for the plaintext copy plus tmpdir/inode overhead),
+            # not the dataset-wide upload ceiling -- a 1 KB upload must not
+            # need the same tmpfs space as a full 32 MiB one.
+            min_free = max(self.runs[run_id]['_upload_bytes'] * 2, 1 * 1024 * 1024)
+            ram_root = ram_backed_tempdir(min_free_bytes=min_free)
             if ram_root is None:
                 raise RequestError('RAM_BACKED_STORAGE_UNAVAILABLE')
             decrypt_dir = Path(tempfile.mkdtemp(prefix=f'nijsetu-run-{run_id}-', dir=str(ram_root)))

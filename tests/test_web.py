@@ -102,6 +102,24 @@ def test_demo_file_removal_is_honored(service):
     assert len(run['result']['records']) == 1
 
 
+def test_tiny_upload_succeeds_on_a_64_mib_constrained_tmpfs(service, monkeypatch):
+    # Regression: the tmpfs free-space floor used to be a flat MAX_BYTES * 4
+    # (128 MiB) no matter how small the upload was, so a container exposing
+    # only 64 MiB under /dev/shm rejected even a one-line CSV with
+    # RAM_BACKED_STORAGE_UNAVAILABLE. It must now scale with this run's own
+    # upload size.
+    from nijsetu.security import secure_store
+
+    class FakeUsage:
+        def __init__(self, free):
+            self.total = self.used = 0
+            self.free = free
+
+    monkeypatch.setattr(secure_store.shutil, 'disk_usage', lambda path: FakeUsage(64 * 1024 * 1024))
+    run = completed(service, {'files': [upload('tiny.csv', b'Patient Name,UHID\nMeera Sharma,TINY001')]})
+    assert run['result']['release_ready']
+
+
 def zip_upload(entries):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w') as archive:
